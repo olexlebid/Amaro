@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Projekt-Briefing · Tanzschule Amaro</title>
+<style>
+  /* ============================================================
+     KONFIG-HINWEIS für Alex:
+     Den Web3Forms Access Key traegst du unten im Script-Bereich unter
+     CONFIG.web3formsKey ein (kostenlos auf web3forms.com).
+     Ohne Key funktioniert weiterhin "Als PDF speichern" + Kopieren.
+     ============================================================ */
+
+  :root{
+    --ink:#1A1820;
+    --muted:#6E6A75;
+    --line:#E7E2DB;
+    --surface:#FFFFFF;
+    --bg:#F2EFEA;
+    --accent:#FF4B33;
+    --accent-deep:#D5371F;
+    --accent-soft:#FFE7E1;
+    --ok:#1F9D6B;
+    --radius:16px;
+    --maxw:640px;
+    --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,"Helvetica Neue",sans-serif;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:var(--font);
+    color:var(--ink);
+    background:var(--bg);
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+
+  .wrap{
+    max-width:var(--maxw);
+    margin:0 auto;
+    padding:24px 18px 40px;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+  }
+
+  /* Header / progress */
+  .top{margin-bottom:18px;}
+  .eyebrow{
+    font-size:12px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--accent-deep);font-weight:700;margin:0 0 6px;
+  }
+  .top h1{font-size:20px;margin:0;font-weight:700;letter-spacing:-.01em;}
+  .beats{display:flex;gap:6px;margin-top:16px;}
+  .beat{height:5px;flex:1;border-radius:99px;background:var(--line);transition:background .35s ease,transform .35s ease;}
+  .beat.done{background:var(--accent);}
+  .beat.current{background:var(--accent);transform:scaleY(1.8);}
+  .stepmeta{display:flex;justify-content:space-between;align-items:baseline;margin-top:10px;}
+  .stepmeta .sec{font-weight:700;font-size:14px;}
+  .stepmeta .count{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;}
+
+  /* Card */
+  .card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:22px 20px;
+    flex:1;
+    box-shadow:0 1px 0 rgba(26,24,32,.02),0 12px 30px -22px rgba(26,24,32,.25);
+  }
+  .screen{animation:fade .35s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+
+  .hint{
+    font-size:13px;color:var(--muted);
+    background:#FBF9F6;border:1px dashed var(--line);
+    padding:10px 12px;border-radius:10px;margin-bottom:18px;
+  }
+
+  .q{margin-bottom:24px;}
+  .q:last-child{margin-bottom:6px;}
+  .q .qnum{font-size:12px;color:var(--accent-deep);font-weight:700;letter-spacing:.04em;}
+  .q .qtext{font-weight:650;font-size:16px;margin:2px 0 4px;}
+  .q .qsub{font-size:13px;color:var(--muted);margin:0 0 12px;}
+
+  /* Chips (radio/checkbox) */
+  .opts{display:flex;flex-wrap:wrap;gap:9px;margin-top:4px;}
+  .chip{
+    position:relative;display:inline-flex;align-items:center;gap:8px;
+    border:1.5px solid var(--line);border-radius:99px;
+    padding:9px 14px;font-size:14px;cursor:pointer;background:#fff;
+    transition:border-color .15s ease,background .15s ease,transform .08s ease;
+    user-select:none;
+  }
+  .chip:hover{border-color:#cfc8bf;}
+  .chip:active{transform:scale(.97);}
+  .chip input{position:absolute;opacity:0;width:0;height:0;}
+  .chip .dot{
+    width:16px;height:16px;border-radius:99px;border:2px solid #cfc8bf;flex:0 0 auto;
+    display:inline-flex;align-items:center;justify-content:center;transition:all .15s ease;
+  }
+  .chip.box .dot{border-radius:5px;}
+  .chip.sel{border-color:var(--accent);background:var(--accent-soft);}
+  .chip.sel .dot{border-color:var(--accent);background:var(--accent);}
+  .chip.sel .dot::after{content:"";width:6px;height:6px;border-radius:2px;background:#fff;}
+  .chip:focus-within{outline:2px solid var(--accent);outline-offset:2px;}
+
+  /* Text inputs */
+  .field{margin-top:6px;}
+  input[type=text],textarea{
+    width:100%;font-family:inherit;font-size:15px;color:var(--ink);
+    border:1.5px solid var(--line);border-radius:11px;background:#fff;
+    padding:12px 13px;transition:border-color .15s ease;
+  }
+  input[type=text]:focus,textarea:focus{outline:none;border-color:var(--accent);}
+  textarea{resize:vertical;min-height:80px;}
+  .inline-text{margin-top:10px;}
+  .inline-text label{font-size:13px;color:var(--muted);display:block;margin-bottom:4px;}
+
+  /* Nav */
+  .nav{display:flex;gap:10px;margin-top:22px;align-items:center;}
+  .btn{
+    font-family:inherit;font-size:15px;font-weight:650;cursor:pointer;
+    border-radius:11px;padding:13px 20px;border:1.5px solid transparent;transition:all .15s ease;
+  }
+  .btn-primary{background:var(--accent);color:#fff;}
+  .btn-primary:hover{background:var(--accent-deep);}
+  .btn-ghost{background:transparent;color:var(--ink);border-color:var(--line);}
+  .btn-ghost:hover{border-color:#cfc8bf;}
+  .btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+  .btn:disabled{opacity:.5;cursor:not-allowed;}
+  .nav .spacer{flex:1;}
+
+  /* Intro */
+  .intro p{font-size:15px;color:#2c2933;}
+  .intro .sign{margin-top:18px;font-weight:650;}
+  .intro .sign span{display:block;font-weight:400;color:var(--muted);font-size:13px;}
+
+  /* Review */
+  .rev-sec{border-top:1px solid var(--line);padding:14px 0;}
+  .rev-sec:first-of-type{border-top:none;}
+  .rev-sec h3{font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--accent-deep);margin:0 0 8px;}
+  .rev-q{font-size:14px;margin:0 0 9px;}
+  .rev-q b{display:block;color:var(--ink);font-weight:600;}
+  .rev-q span{color:var(--muted);}
+  .rev-q .empty{color:#b9b3aa;font-style:italic;}
+  .editbar{display:flex;justify-content:flex-end;margin-top:4px;}
+  .link{background:none;border:none;color:var(--accent-deep);font:inherit;font-size:13px;cursor:pointer;text-decoration:underline;padding:4px;}
+
+  .actions{display:flex;flex-direction:column;gap:10px;margin-top:20px;}
+  .msg{font-size:13px;padding:11px 13px;border-radius:10px;margin-top:4px;display:none;}
+  .msg.show{display:block;}
+  .msg.ok{background:#E7F6EE;color:#0f6b48;}
+  .msg.err{background:#FDECE8;color:#a3331d;}
+  .tiny{font-size:12px;color:var(--muted);text-align:center;margin-top:14px;}
+
+  .done{text-align:center;padding:30px 10px;}
+  .done .mark{width:54px;height:54px;border-radius:99px;background:var(--accent-soft);color:var(--accent-deep);
+    display:inline-flex;align-items:center;justify-content:center;font-size:26px;margin-bottom:14px;}
+  .done h2{margin:0 0 8px;}
+  .done p{color:var(--muted);margin:0;}
+
+  @media (prefers-reduced-motion:reduce){
+    .screen{animation:none;}
+    .beat{transition:none;}
+    .chip:active{transform:none;}
+  }
+
+  /* Print sheet (PDF) */
+  #print-sheet{display:none;}
+  @media print{
+    body{background:#fff;}
+    .wrap{display:none !important;}
+    #print-sheet{display:block;max-width:720px;margin:0 auto;padding:0;color:#000;font-family:var(--font);}
+    #print-sheet h1{font-size:20px;margin:0 0 2px;}
+    #print-sheet .pmeta{color:#555;font-size:12px;margin-bottom:18px;}
+    #print-sheet .psec{margin-bottom:14px;page-break-inside:avoid;}
+    #print-sheet .psec h3{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#c33;border-bottom:1px solid #ddd;padding-bottom:4px;margin:0 0 8px;}
+    #print-sheet .pq{font-size:13px;margin-bottom:8px;}
+    #print-sheet .pq b{display:block;}
+    #print-sheet .pq span{color:#333;}
+    #print-sheet .pq .empty{color:#aaa;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap" id="app">
+  <div class="top">
+    <p class="eyebrow">Tanzschule Amaro</p>
+    <h1>Projekt-Briefing</h1>
+    <div class="beats" id="beats" aria-hidden="true"></div>
+    <div class="stepmeta">
+      <span class="sec" id="secName"></span>
+      <span class="count" id="secCount"></span>
+    </div>
+  </div>
+
+  <div class="card" id="card" aria-live="polite"></div>
+</div>
+
+<div id="print-sheet"></div>
+
+<script>
+/* ====================== CONFIG ====================== */
+const CONFIG = {
+  // Kostenlosen Key auf https://web3forms.com holen und hier einsetzen:
+  web3formsKey: "4d19a663-c1b3-48fc-aec7-ffd58faf733e",            // z. B. "abcd1234-...."
+  subject: "Projekt-Briefing Tanzschule Amaro – Antworten",
+  fromName: "Amaro Briefing",
+  ccEmails: "olexlebid@gmail.com"                 // optional, z. B. "martin@example.de" (Komma-getrennt)
+};
+/* =================================================== */
+
+const SECTIONS = [
+  { id:"intro", name:"Start", intro:true },
+  { id:"s1", name:"Ziele & Erfolg", questions:[
+    {id:"1.1",t:"Was ist das wichtigste Ziel der neuen Website?",sub:"Mehrfachauswahl (am besten max. 2)",type:"multi",
+     opts:["Mehr Anmeldungen","Moderner wirken","Besser gefunden werden (Google/KI)","Bestimmte Kurse füllen","Weniger Standard-Anfragen per Telefon"],other:true},
+    {id:"1.2",t:"Welche Kurse möchtest du am stärksten bewerben?",type:"multi",
+     opts:["Kindertanz","Hip-Hop","Hochzeitskurse","Gesellschaftstanz"],other:true},
+    {id:"1.3",t:"Woran würdest du in 6–12 Monaten merken, dass die neue Seite ein Erfolg war?",sub:"z. B. „Hip-Hop-Kurse voll“, „weniger Anrufe mit denselben Fragen“",type:"textarea"},
+    {id:"1.4",t:"Gibt es Kurse, die ihr dringend voller bekommen wollt?",type:"text"},
+    {id:"1.5",t:"Stört dich etwas an der aktuellen Website besonders?",type:"textarea"},
+    {id:"1.6",t:"Soll etwas auf jeden Fall erhalten bleiben?",type:"textarea"},
+  ]},
+  { id:"s2", name:"Zielgruppe", questions:[
+    {id:"2.1",t:"Wer sind eure typischen Kunden?",type:"multi",
+     opts:["Eltern (für Kinder)","Kinder/Jugendliche","Paare","Erwachsene/Hobby","Wettkampf/Ambitionierte"]},
+    {id:"2.2",t:"Warum entscheiden sich Leute für Amaro und nicht für eine andere Schule?",sub:"Deine ehrliche Einschätzung – das wird die Kernbotschaft der Seite.",type:"textarea"},
+    {id:"2.3",t:"Welche Fragen stellen euch Interessenten am häufigsten?",sub:"Für den FAQ-Bereich.",type:"textarea"},
+  ]},
+  { id:"s3", name:"Inhalte & Struktur", questions:[
+    {id:"3.1",t:"Welche Seiten soll die Website haben?",type:"multi",
+     opts:["Start","Kurse","Über uns / Team","Preise","Stundenplan","Kontakt","FAQ","Merch","Galerie / Erfolge"]},
+    {id:"3.2",t:"Welche Tanzstile bietet ihr an – mit Preisen?",sub:"Gern als Liste – das brauche ich für die Kurs-Struktur.",type:"textarea"},
+    {id:"3.3",t:"Eure Erfolge / Auszeichnungen, die sichtbar sein sollen?",sub:"Meistertitel, ADTV, Europameisterin im Team …",type:"textarea"},
+    {id:"3.4",t:"Soll der Stundenplan auf der Seite stehen?",type:"single",
+     opts:["Ja, immer aktuell","Ja, grobe Übersicht reicht","Nein, nur auf Anfrage"]},
+  ]},
+  { id:"s4", name:"Marke & Branding", questions:[
+    {id:"4.1",t:"Habt ihr das Logo als Vektordatei?",sub:"Wichtig für gestochen scharfe Darstellung.",type:"single",
+     opts:["Ja, als SVG / AI / EPS / PDF","Nur als Bild (PNG / JPG)","Weiß nicht / muss suchen"]},
+    {id:"4.2",t:"Wer hat das Logo erstellt – habt ihr die Originaldateien?",type:"text"},
+    {id:"4.3",t:"Was soll mit dem Logo passieren?",type:"single",
+     opts:["Bleibt genau so","Leicht auffrischen","Neu gestalten","Bin offen"]},
+    {id:"4.4",t:"Gibt es Markenelemente, die unbedingt unverändert bleiben müssen?",type:"multi",
+     opts:["Logo","Farben","Schriftart","Slogan / Claim","ADTV-Zeichen","Name / Schreibweise","Nichts Festes"]},
+    {id:"4.5",t:"Gibt es feste Markenfarben?",sub:"HEX-Codes oder Beispiel.",type:"text"},
+    {id:"4.6",t:"Existiert ein Style-Guide / Branding-Dokument?",type:"single",opts:["Ja (lege ich bei)","Nein"]},
+    {id:"4.7",t:"Wie soll die Seite wirken? Wähle 3–5 Worte:",type:"multi",
+     opts:["modern","energiegeladen","familiär","professionell","jung","hochwertig","sportlich","verspielt","elegant"]},
+    {id:"4.8",t:"Ein Wort, das die Seite NICHT sein soll?",sub:"z. B. „nicht steif“, „nicht kindisch“",type:"text"},
+    {id:"4.9",t:"Wenn Amaro ein Mensch wäre – wie würdest du ihn/sie beschreiben?",sub:"z. B. „erfahrener Trainer: streng im Können, aber herzlich“",type:"textarea"},
+    {id:"4.10",t:"Websites (egal welche Branche), die dir optisch gefallen?",type:"textarea"},
+  ]},
+  { id:"s5", name:"Fotos, Video & Kinder", questions:[
+    {id:"5.1",t:"Habt ihr gute, aktuelle Fotos/Videos?",type:"single",
+     opts:["Ja, professionell","Ja, Handy-Qualität","Wenig / veraltet","Kaum vorhanden"]},
+    {id:"5.2",t:"Können wir neue Aufnahmen machen?",sub:"z. B. Hip-Hop-Gruppe in Bewegung.",type:"single",
+     opts:["Ja, gerne","Vielleicht","Eher nicht"]},
+    {id:"5.3",t:"Kinder auf Aufnahmen: Habt ihr Einwilligungen der Eltern – oder müssen wir sie einsammeln?",sub:"Vorlage liefere ich.",type:"textarea"},
+  ]},
+  { id:"s6", name:"Technik, Hosting & Zugänge", questions:[
+    {id:"6.1",t:"Wer hat die aktuelle Website erstellt?",sub:"Agentur, Freelancer, jemand aus dem Umfeld, selbst?",type:"text"},
+    {id:"6.2",t:"Besteht noch Kontakt zu dieser Person/Agentur?",type:"single",opts:["Ja, guter Kontakt","Loser Kontakt","Kein Kontakt mehr"]},
+    {id:"6.3",t:"Wer kümmert sich aktuell um die Website (Änderungen, Updates)?",type:"text"},
+    {id:"6.4",t:"Wie laufen Änderungen heute ab?",sub:"Selbst im WordPress, oder über jemanden – und wie schnell?",type:"textarea"},
+    {id:"6.5",t:"Wer ist bei euch der/die Ansprechpartner/in für das Projekt?",type:"text"},
+    {id:"6.6",t:"Habt ihr Zugang zur Domain (tanzschule-amaro.de)?",type:"single",
+     opts:["Ja, mit Login-Daten","Ja, aber Login unklar","Nein / weiß nicht"]},
+    {id:"6.7",t:"Bei welchem Anbieter liegt die Domain, und auf wen ist sie registriert?",sub:"z. B. IONOS, Strato, GoDaddy …",type:"text"},
+    {id:"6.8",t:"Habt ihr Zugang zum aktuellen Hosting (WordPress)?",type:"single",opts:["Ja","Teilweise","Nein"]},
+    {id:"6.9",t:"Welcher Hosting-Anbieter, und gibt es eine Vertragslaufzeit / Kündigungsfrist?",type:"text"},
+    {id:"6.10",t:"Laufen E-Mail-Postfächer über die Domain (z. B. info@tanzschule-amaro.de)?",sub:"Wichtig, damit beim Umzug keine Adresse verloren geht.",type:"single",
+     opts:["Ja","Nein, wir nutzen Gmail o. Ä.","Weiß nicht"],extraText:"Falls ja: Wer verwaltet die Postfächer?"},
+    {id:"6.11",t:"Gibt es ein Google Business Profil (Maps / Suche)?",type:"single",
+     opts:["Ja, wir verwalten es","Ja, aber kein Zugriff","Nein","Weiß nicht"]},
+    {id:"6.12",t:"Wird aktuell ein Analyse-/Tracking-Tool genutzt?",sub:"z. B. Google Analytics.",type:"text"},
+  ]},
+  { id:"s7", name:"Rechtliches", questions:[
+    {id:"7.1",t:"Impressum & Datenschutzerklärung – Stand?",sub:"Diese Texte stellt die Schule bereit; ich baue sie sauber ein.",type:"single",
+     opts:["Vorhanden & aktuell","Vorhanden, evtl. veraltet","Müssen erstellt werden (z. B. eRecht24)"]},
+  ]},
+  { id:"s8", name:"Tools & Integrationen", questions:[
+    {id:"8.1",t:"Was soll eingebunden werden?",type:"multi",
+     opts:["Kontaktformular","Newsletter","Online-Anmeldung","Google Maps","Instagram-Feed","YouTube","WhatsApp-Button","Nichts davon"]},
+  ]},
+  { id:"s9", name:"Merch", questions:[
+    {id:"9.1",t:"Soll der bestehende Spreadshop als Katalog auf der Seite sichtbar sein (mit Link zum Shop)?",type:"single",
+     opts:["Ja","Später","Nein"]},
+  ]},
+  { id:"s10", name:"Rahmen & Sonstiges", questions:[
+    {id:"10.1",t:"Gibt es einen Termin/Anlass, bis zu dem die Seite fertig sein sollte?",sub:"Saisonstart, Anmeldephase …",type:"text"},
+    {id:"10.2",t:"Sonst noch etwas, das ich wissen sollte?",type:"textarea"},
+  ]},
+  { id:"review", name:"Übersicht", review:true },
+];
+
+const answers = {};      // {qid: value}  value = string | array
+const extra = {};        // {qid: extraText}
+let step = 0;
+
+// try restore
+try{
+  const saved = JSON.parse(localStorage.getItem("amaro_brief")||"{}");
+  if(saved.answers) Object.assign(answers, saved.answers);
+  if(saved.extra) Object.assign(extra, saved.extra);
+}catch(e){}
+
+function persist(){
+  try{ localStorage.setItem("amaro_brief", JSON.stringify({answers,extra})); }catch(e){}
+}
+
+const card = document.getElementById("card");
+const beatsEl = document.getElementById("beats");
+const secName = document.getElementById("secName");
+const secCount = document.getElementById("secCount");
+
+function buildBeats(){
+  beatsEl.innerHTML="";
+  SECTIONS.forEach((s,i)=>{
+    const b=document.createElement("div");
+    b.className="beat"+(i<step?" done":"")+(i===step?" current":"");
+    beatsEl.appendChild(b);
+  });
+}
+
+function esc(s){return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+
+function render(){
+  const s = SECTIONS[step];
+  buildBeats();
+  secName.textContent = s.name;
+  secCount.textContent = "Schritt "+ (step) +" / "+ (SECTIONS.length-2 < 1 ? 1 : SECTIONS.length-2);
+  if(s.intro){ secCount.textContent=""; renderIntro(); return; }
+  if(s.review){ secCount.textContent=""; renderReview(); return; }
+  renderSection(s);
+  if(card.scrollIntoView) card.scrollIntoView({block:"start",behavior:"auto"});
+}
+
+function renderIntro(){
+  card.innerHTML = `
+   <div class="screen intro">
+     <div class="hint">Alles ist optional. Was du nicht sicher weißt, überspring einfach – das klären wir beim Gespräch.</div>
+     <p>Hallo Martin,</p>
+     <p>damit ich gleich in die richtige Richtung arbeiten kann, hier ein paar Fragen vorab. Stichworte reichen völlig – es dauert nur ein paar Minuten. Am Ende kannst du die Antworten als PDF speichern oder direkt an mich senden.</p>
+     <p class="sign">Alex<span>Product &amp; Webflow Designer</span></p>
+     <div class="nav">
+       <span class="spacer"></span>
+       <button class="btn btn-primary" id="next">Los geht’s</button>
+     </div>
+   </div>`;
+  document.getElementById("next").onclick=()=>{step++;render();};
+}
+
+function renderSection(s){
+  let html = `<div class="screen"><div class="hint">Optional – Unklares einfach überspringen.</div>`;
+  s.questions.forEach(q=>{
+    html += `<div class="q"><span class="qnum">${q.id}</span><div class="qtext">${esc(q.t)}</div>`;
+    if(q.sub) html += `<p class="qsub">${esc(q.sub)}</p>`;
+    if(q.type==="single"||q.type==="multi"){
+      const cur = answers[q.id] || (q.type==="multi"?[]:"");
+      html += `<div class="opts" data-q="${q.id}" data-type="${q.type}">`;
+      q.opts.forEach(o=>{
+        const sel = q.type==="multi" ? cur.includes(o) : cur===o;
+        html += `<label class="chip ${q.type==="multi"?"box":""} ${sel?"sel":""}">
+          <input type="${q.type==="multi"?"checkbox":"radio"}" name="${q.id}" value="${esc(o)}" ${sel?"checked":""}>
+          <span class="dot"></span><span>${esc(o)}</span></label>`;
+      });
+      html += `</div>`;
+      if(q.other){
+        const ov = (answers[q.id+"__other"]||"");
+        html += `<div class="field inline-text"><label>Anderes:</label><input type="text" data-other="${q.id}" value="${esc(ov)}" placeholder="…"></div>`;
+      }
+      if(q.extraText){
+        const ev = extra[q.id]||"";
+        html += `<div class="field inline-text"><label>${esc(q.extraText)}</label><input type="text" data-extra="${q.id}" value="${esc(ev)}" placeholder="…"></div>`;
+      }
+    } else if(q.type==="text"){
+      html += `<div class="field"><input type="text" data-q="${q.id}" value="${esc(answers[q.id]||"")}" placeholder="Deine Antwort …"></div>`;
+    } else if(q.type==="textarea"){
+      html += `<div class="field"><textarea data-q="${q.id}" placeholder="Deine Antwort …">${esc(answers[q.id]||"")}</textarea></div>`;
+    }
+    html += `</div>`;
+  });
+  const lastBeforeReview = step === SECTIONS.length-2;
+  html += `<div class="nav">
+     <button class="btn btn-ghost" id="back">Zurück</button>
+     <span class="spacer"></span>
+     <button class="btn btn-primary" id="next">${lastBeforeReview?"Zur Übersicht":"Weiter"}</button>
+   </div></div>`;
+  card.innerHTML = html;
+  wireInputs();
+  document.getElementById("back").onclick=()=>{step--;render();};
+  document.getElementById("next").onclick=()=>{step++;render();};
+}
+
+function wireInputs(){
+  card.querySelectorAll(".opts").forEach(group=>{
+    const qid=group.dataset.q, type=group.dataset.type;
+    group.querySelectorAll("input").forEach(inp=>{
+      inp.addEventListener("change",()=>{
+        if(type==="multi"){
+          const arr = group.querySelectorAll("input:checked");
+          answers[qid] = Array.from(arr).map(i=>i.value);
+        } else {
+          answers[qid] = inp.value;
+        }
+        group.querySelectorAll(".chip").forEach(c=>{
+          const i=c.querySelector("input"); c.classList.toggle("sel", i.checked);
+        });
+        persist();
+      });
+    });
+  });
+  card.querySelectorAll("input[type=text][data-q], textarea[data-q]").forEach(el=>{
+    el.addEventListener("input",()=>{answers[el.dataset.q]=el.value;persist();});
+  });
+  card.querySelectorAll("[data-other]").forEach(el=>{
+    el.addEventListener("input",()=>{answers[el.dataset.other+"__other"]=el.value;persist();});
+  });
+  card.querySelectorAll("[data-extra]").forEach(el=>{
+    el.addEventListener("input",()=>{extra[el.dataset.extra]=el.value;persist();});
+  });
+}
+
+function answerText(q){
+  let v = answers[q.id];
+  let out = "";
+  if(Array.isArray(v)) out = v.join(", ");
+  else out = v||"";
+  const o = answers[q.id+"__other"];
+  if(o) out += (out?", ":"")+"Anderes: "+o;
+  const e = extra[q.id];
+  if(e) out += (out?" — ":"")+q.extraText.replace(/:$/,"")+": "+e;
+  return out.trim();
+}
+
+function renderReview(){
+  let html = `<div class="screen"><div class="hint">Fast geschafft – hier kannst du alles prüfen. Tippe auf „Bearbeiten“, um etwas zu ändern.</div>`;
+  SECTIONS.forEach((s,i)=>{
+    if(!s.questions) return;
+    html += `<div class="rev-sec"><h3>${esc(s.name)}</h3>`;
+    s.questions.forEach(q=>{
+      const a = answerText(q);
+      html += `<div class="rev-q"><b>${esc(q.t)}</b>${a?`<span>${esc(a)}</span>`:`<span class="empty">— übersprungen —</span>`}</div>`;
+    });
+    html += `<div class="editbar"><button class="link" data-goto="${i}">Bearbeiten</button></div></div>`;
+  });
+
+  html += `<div class="actions">
+      <button class="btn btn-primary" id="send">Antworten an Alex senden</button>
+      <button class="btn btn-ghost" id="pdf">Als PDF speichern</button>
+      <button class="btn btn-ghost" id="copy">Antworten kopieren</button>
+      <div class="msg" id="msg"></div>
+    </div>
+    <div class="nav"><button class="btn btn-ghost" id="back">Zurück</button></div>
+    <p class="tiny">Tanzschule Amaro · Projekt-Briefing</p>
+    </div>`;
+  card.innerHTML = html;
+
+  card.querySelectorAll("[data-goto]").forEach(b=>b.onclick=()=>{step=parseInt(b.dataset.goto);render();});
+  document.getElementById("back").onclick=()=>{step--;render();};
+  document.getElementById("copy").onclick=copyAnswers;
+  document.getElementById("pdf").onclick=savePdf;
+  document.getElementById("send").onclick=sendEmail;
+}
+
+function plainText(){
+  let lines = ["PROJEKT-BRIEFING – TANZSCHULE AMARO","Datum: "+new Date().toLocaleDateString("de-DE"),""];
+  SECTIONS.forEach(s=>{
+    if(!s.questions) return;
+    lines.push("== "+s.name.toUpperCase()+" ==");
+    s.questions.forEach(q=>{
+      const a=answerText(q);
+      lines.push(q.t);
+      lines.push("  → "+(a||"(übersprungen)"));
+    });
+    lines.push("");
+  });
+  return lines.join("\n");
+}
+
+function buildPrintSheet(){
+  let html = `<h1>Projekt-Briefing · Tanzschule Amaro</h1><div class="pmeta">Datum: ${new Date().toLocaleDateString("de-DE")}</div>`;
+  SECTIONS.forEach(s=>{
+    if(!s.questions) return;
+    html += `<div class="psec"><h3>${esc(s.name)}</h3>`;
+    s.questions.forEach(q=>{
+      const a=answerText(q);
+      html += `<div class="pq"><b>${esc(q.t)}</b>${a?`<span>${esc(a)}</span>`:`<span class="empty">— übersprungen —</span>`}</div>`;
+    });
+    html += `</div>`;
+  });
+  document.getElementById("print-sheet").innerHTML = html;
+}
+
+function savePdf(){ buildPrintSheet(); window.print(); }
+
+function copyAnswers(){
+  const txt = plainText();
+  const done=()=>showMsg("ok","Antworten kopiert – du kannst sie jetzt einfügen.");
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(done).catch(()=>fallbackCopy(txt,done));
+  } else fallbackCopy(txt,done);
+}
+function fallbackCopy(txt,done){
+  const ta=document.createElement("textarea");ta.value=txt;document.body.appendChild(ta);ta.select();
+  try{document.execCommand("copy");done();}catch(e){showMsg("err","Kopieren nicht möglich – bitte PDF speichern.");}
+  document.body.removeChild(ta);
+}
+
+function showMsg(type,text){
+  const m=document.getElementById("msg");
+  m.className="msg show "+type;m.textContent=text;
+}
+
+function sendEmail(){
+  const btn=document.getElementById("send");
+  if(!CONFIG.web3formsKey){
+    // Fallback: mailto
+    showMsg("err","E-Mail-Versand ist noch nicht eingerichtet. Bitte „Als PDF speichern“ nutzen – oder Alex trägt den Web3Forms-Key ein.");
+    const body=encodeURIComponent(plainText());
+    window.location.href="mailto:?subject="+encodeURIComponent(CONFIG.subject)+"&body="+body;
+    return;
+  }
+  btn.disabled=true;btn.textContent="Wird gesendet …";
+  const payload={
+    access_key:CONFIG.web3formsKey,
+    subject:CONFIG.subject,
+    from_name:CONFIG.fromName,
+    message:plainText()
+  };
+  if(CONFIG.ccEmails) payload.cc=CONFIG.ccEmails;
+  fetch("https://api.web3forms.com/submit",{
+    method:"POST",
+    headers:{"Content-Type":"application/json",Accept:"application/json"},
+    body:JSON.stringify(payload)
+  }).then(r=>r.json()).then(d=>{
+    if(d.success){ renderDone(); }
+    else { btn.disabled=false;btn.textContent="Antworten an Alex senden";showMsg("err","Senden fehlgeschlagen. Bitte „Als PDF speichern“ und manuell schicken."); }
+  }).catch(()=>{
+    btn.disabled=false;btn.textContent="Antworten an Alex senden";
+    showMsg("err","Keine Verbindung. Bitte „Als PDF speichern“ und manuell schicken.");
+  });
+}
+
+function renderDone(){
+  try{localStorage.removeItem("amaro_brief");}catch(e){}
+  card.innerHTML=`<div class="screen done">
+    <div class="mark">✓</div>
+    <h2>Danke, Martin!</h2>
+    <p>Deine Antworten sind bei Alex angekommen. Er meldet sich bei dir für das kurze Gespräch.</p>
+  </div>`;
+  buildBeats();
+}
+
+render();
+</script>
+</body>
+</html>
