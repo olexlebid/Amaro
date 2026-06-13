@@ -54,10 +54,8 @@
     color:var(--accent-deep);font-weight:700;margin:0 0 6px;
   }
   .top h1{font-size:20px;margin:0;font-weight:700;letter-spacing:-.01em;}
-  .beats{display:flex;gap:6px;margin-top:16px;}
-  .beat{height:5px;flex:1;border-radius:99px;background:var(--line);transition:background .35s ease,transform .35s ease;}
-  .beat.done{background:var(--accent);}
-  .beat.current{background:var(--accent);transform:scaleY(1.8);}
+  .track{height:6px;border-radius:99px;background:var(--line);margin-top:16px;overflow:hidden;}
+  .track .fill{height:100%;background:var(--accent);border-radius:99px;width:0;transition:width .35s ease;}
   .stepmeta{display:flex;justify-content:space-between;align-items:baseline;margin-top:10px;}
   .stepmeta .sec{font-weight:700;font-size:14px;}
   .stepmeta .count{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;}
@@ -165,7 +163,7 @@
 
   @media (prefers-reduced-motion:reduce){
     .screen{animation:none;}
-    .beat{transition:none;}
+    .fill{transition:none;}
     .chip:active{transform:none;}
   }
 
@@ -191,7 +189,7 @@
   <div class="top">
     <p class="eyebrow">Tanzschule Amaro</p>
     <h1>Projekt-Briefing</h1>
-    <div class="beats" id="beats" aria-hidden="true"></div>
+    <div class="track" id="track" aria-hidden="true"><div class="fill" id="fill"></div></div>
     <div class="stepmeta">
       <span class="sec" id="secName"></span>
       <span class="count" id="secCount"></span>
@@ -234,27 +232,21 @@ const SECTIONS = [
   ]},
   { id:"s3", name:"Inhalte & Struktur", questions:[
     {id:"3.1",t:"Welche Seiten soll die Website haben?",type:"multi",
-     opts:["Start","Kurse","Über uns / Team","Preise","Stundenplan","Kontakt","FAQ","Merch","Galerie / Erfolge"]},
+     opts:["Start","Kurse","Über uns / Team","Preise","Stundenplan","Kontakt","FAQ","Merch","Galerie / Erfolge"],other:true,otherLabel:"Andere Seiten:"},
     {id:"3.2",t:"Welche Tanzstile bietet ihr an – mit Preisen?",sub:"Gern als Liste – das brauche ich für die Kurs-Struktur.",type:"textarea"},
     {id:"3.3",t:"Eure Erfolge / Auszeichnungen, die sichtbar sein sollen?",sub:"Meistertitel, ADTV, Europameisterin im Team …",type:"textarea"},
     {id:"3.4",t:"Soll der Stundenplan auf der Seite stehen?",type:"single",
      opts:["Ja, immer aktuell","Ja, grobe Übersicht reicht","Nein, nur auf Anfrage"]},
   ]},
   { id:"s4", name:"Marke & Branding", questions:[
-    {id:"4.1",t:"Habt ihr das Logo als Vektordatei?",sub:"Wichtig für gestochen scharfe Darstellung.",type:"single",
-     opts:["Ja, als SVG / AI / EPS / PDF","Nur als Bild (PNG / JPG)","Weiß nicht / muss suchen"]},
-    {id:"4.2",t:"Wer hat das Logo erstellt – habt ihr die Originaldateien?",type:"text"},
-    {id:"4.3",t:"Was soll mit dem Logo passieren?",type:"single",
-     opts:["Bleibt genau so","Leicht auffrischen","Neu gestalten","Bin offen"]},
-    {id:"4.4",t:"Gibt es Markenelemente, die unbedingt unverändert bleiben müssen?",type:"multi",
+    {id:"4.1",t:"Gibt es Markenelemente, die unbedingt unverändert bleiben müssen?",type:"multi",
      opts:["Logo","Farben","Schriftart","Slogan / Claim","ADTV-Zeichen","Name / Schreibweise","Nichts Festes"]},
-    {id:"4.5",t:"Gibt es feste Markenfarben?",sub:"HEX-Codes oder Beispiel.",type:"text"},
-    {id:"4.6",t:"Existiert ein Style-Guide / Branding-Dokument?",type:"single",opts:["Ja (lege ich bei)","Nein"]},
-    {id:"4.7",t:"Wie soll die Seite wirken? Wähle 3–5 Worte:",type:"multi",
-     opts:["modern","energiegeladen","familiär","professionell","jung","hochwertig","sportlich","verspielt","elegant"]},
-    {id:"4.8",t:"Ein Wort, das die Seite NICHT sein soll?",sub:"z. B. „nicht steif“, „nicht kindisch“",type:"text"},
-    {id:"4.9",t:"Wenn Amaro ein Mensch wäre – wie würdest du ihn/sie beschreiben?",sub:"z. B. „erfahrener Trainer: streng im Können, aber herzlich“",type:"textarea"},
-    {id:"4.10",t:"Websites (egal welche Branche), die dir optisch gefallen?",type:"textarea"},
+    {id:"4.2",t:"Wie soll die Seite wirken? Wähle 3–5 Worte:",type:"multi",
+     opts:["modern","energiegeladen","familiär","professionell","jung","hochwertig","sportlich","verspielt","elegant"],other:true},
+    {id:"4.3",t:"Ein Wort, das die Seite NICHT sein soll?",sub:"z. B. „nicht steif“, „nicht kindisch“",type:"text"},
+    {id:"4.4",t:"Websites (egal welche Branche), die dir optisch gefallen?",type:"textarea"},
+    {id:"4.5",t:"Vorschlag von mir: Soll ich als Teil des Projekts ein kleines Brand-Set erstellen?",sub:"Damit alles aus einem Guss ist – klares Logo, feste Farben & Schriften, plus Mockups für Merch (z. B. T-Shirts/Hoodies). Hilft der Website und allem, was ihr sonst druckt.",type:"single",
+     opts:["Ja, gerne","Klingt interessant – lass uns reden","Erstmal nur die Website"]},
   ]},
   { id:"s5", name:"Fotos, Video & Kinder", questions:[
     {id:"5.1",t:"Habt ihr gute, aktuelle Fotos/Videos?",type:"single",
@@ -268,17 +260,14 @@ const SECTIONS = [
     {id:"6.2",t:"Besteht noch Kontakt zu dieser Person/Agentur?",type:"single",opts:["Ja, guter Kontakt","Loser Kontakt","Kein Kontakt mehr"]},
     {id:"6.3",t:"Wer kümmert sich aktuell um die Website (Änderungen, Updates)?",type:"text"},
     {id:"6.4",t:"Wie laufen Änderungen heute ab?",sub:"Selbst im WordPress, oder über jemanden – und wie schnell?",type:"textarea"},
-    {id:"6.5",t:"Wer ist bei euch der/die Ansprechpartner/in für das Projekt?",type:"text"},
-    {id:"6.6",t:"Habt ihr Zugang zur Domain (tanzschule-amaro.de)?",type:"single",
+    {id:"6.5",t:"Habt ihr Zugang zur Domain (tanzschule-amaro.de)?",type:"single",
      opts:["Ja, mit Login-Daten","Ja, aber Login unklar","Nein / weiß nicht"]},
-    {id:"6.7",t:"Bei welchem Anbieter liegt die Domain, und auf wen ist sie registriert?",sub:"z. B. IONOS, Strato, GoDaddy …",type:"text"},
-    {id:"6.8",t:"Habt ihr Zugang zum aktuellen Hosting (WordPress)?",type:"single",opts:["Ja","Teilweise","Nein"]},
-    {id:"6.9",t:"Welcher Hosting-Anbieter, und gibt es eine Vertragslaufzeit / Kündigungsfrist?",type:"text"},
-    {id:"6.10",t:"Laufen E-Mail-Postfächer über die Domain (z. B. info@tanzschule-amaro.de)?",sub:"Wichtig, damit beim Umzug keine Adresse verloren geht.",type:"single",
+    {id:"6.6",t:"Habt ihr Zugang zum aktuellen Hosting (WordPress)?",type:"single",opts:["Ja","Teilweise","Nein"]},
+    {id:"6.7",t:"Laufen E-Mail-Postfächer über die Domain (z. B. info@tanzschule-amaro.de)?",sub:"Wichtig, damit beim Umzug keine Adresse verloren geht.",type:"single",
      opts:["Ja","Nein, wir nutzen Gmail o. Ä.","Weiß nicht"],extraText:"Falls ja: Wer verwaltet die Postfächer?"},
-    {id:"6.11",t:"Gibt es ein Google Business Profil (Maps / Suche)?",type:"single",
+    {id:"6.8",t:"Gibt es ein Google Business Profil (Maps / Suche)?",type:"single",
      opts:["Ja, wir verwalten es","Ja, aber kein Zugriff","Nein","Weiß nicht"]},
-    {id:"6.12",t:"Wird aktuell ein Analyse-/Tracking-Tool genutzt?",sub:"z. B. Google Analytics.",type:"text"},
+    {id:"6.9",t:"Wird aktuell ein Analyse-/Tracking-Tool genutzt?",sub:"z. B. Google Analytics.",type:"text"},
   ]},
   { id:"s7", name:"Rechtliches", questions:[
     {id:"7.1",t:"Impressum & Datenschutzerklärung – Stand?",sub:"Diese Texte stellt die Schule bereit; ich baue sie sauber ein.",type:"single",
@@ -315,17 +304,13 @@ function persist(){
 }
 
 const card = document.getElementById("card");
-const beatsEl = document.getElementById("beats");
+const fillEl = document.getElementById("fill");
 const secName = document.getElementById("secName");
 const secCount = document.getElementById("secCount");
 
 function buildBeats(){
-  beatsEl.innerHTML="";
-  SECTIONS.forEach((s,i)=>{
-    const b=document.createElement("div");
-    b.className="beat"+(i<step?" done":"")+(i===step?" current":"");
-    beatsEl.appendChild(b);
-  });
+  const pct = Math.round((step/(SECTIONS.length-1))*100);
+  fillEl.style.width = pct + "%";
 }
 
 function esc(s){return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
@@ -373,7 +358,7 @@ function renderSection(s){
       html += `</div>`;
       if(q.other){
         const ov = (answers[q.id+"__other"]||"");
-        html += `<div class="field inline-text"><label>Anderes:</label><input type="text" data-other="${q.id}" value="${esc(ov)}" placeholder="…"></div>`;
+        html += `<div class="field inline-text"><label>${esc(q.otherLabel||"Anderes:")}</label><input type="text" data-other="${q.id}" value="${esc(ov)}" placeholder="…"></div>`;
       }
       if(q.extraText){
         const ev = extra[q.id]||"";
