@@ -1,8 +1,13 @@
 ---
-// Full-screen intro: plays the Amaro logo Lottie once on a black background,
-// then fades away to reveal the page. Shown once per browser session
-// (sessionStorage flag) — repeat page loads within the same session skip
-// straight past it so navigating the site doesn't replay the intro every time.
+// Full-screen intro: plays the Amaro logo Lottie once, then fades away to
+// reveal the page. Shown once per browser session (sessionStorage flag) —
+// repeat page loads within the same session skip straight past it so
+// navigating the site doesn't replay the intro every time.
+//
+// The logo shape itself is a *hole*, not a white fill: the canvas is
+// inverted every frame (opaque black everywhere except transparent exactly
+// where the glyph was drawn), so the already-loaded page underneath shows
+// through the letters while the rest of the screen stays covered.
 //
 // The .lottie file's own timing/scale (see src/assets/lottie/amaro_anim.lottie)
 // is left untouched here — only playback (once, not looped) and layout fit are set.
@@ -23,17 +28,34 @@
 
 <script is:inline>
   // Runs synchronously, right at this point in parsing — before the browser
-  // paints anything below it. If the intro already played earlier in this
-  // browser session, hide the preloader immediately so repeat page loads
-  // never flash the black overlay.
+  // paints anything below it.
   (function () {
+    var canvas = document.querySelector("[data-preloader-canvas]");
+    var root = document.querySelector("[data-preloader]");
+
     try {
       if (sessionStorage.getItem("amaro-preloader-seen") === "1") {
-        var el = document.querySelector("[data-preloader]");
-        if (el) el.hidden = true;
+        // Intro already played earlier in this session — hide immediately so
+        // repeat page loads never flash the overlay.
+        if (root) root.hidden = true;
+        return;
       }
     } catch (error) {
       // sessionStorage unavailable (e.g. private mode) — fall back to always showing it.
+    }
+
+    // Paint an instant solid-black placeholder frame so there's zero gap
+    // between first paint and the animated player taking over the canvas
+    // (the player resets/clears the canvas once it initializes, moments later).
+    if (canvas) {
+      var dpr = window.devicePixelRatio || 1;
+      canvas.width = Math.ceil(window.innerWidth * dpr);
+      canvas.height = Math.ceil(window.innerHeight * dpr);
+      var ctx = canvas.getContext("2d");
+      if (ctx) {
+        ctx.fillStyle = "#000";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
     }
   })();
 </script>
@@ -89,6 +111,21 @@
     }, FADE_FALLBACK_MS);
   }
 
+  // Cuts a see-through hole in the canvas wherever the just-drawn frame is
+  // opaque (the logo glyphs), and leaves solid black everywhere else — so
+  // the already-loaded page shows through the letters instead of the
+  // glyphs being filled white. Porter-Duff XOR against a full opaque black
+  // rect: overlapping (glyph) pixels cancel to transparent, non-overlapping
+  // (background) pixels become opaque black.
+  function punchHoles(ctx: CanvasRenderingContext2D, target: HTMLCanvasElement) {
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.globalCompositeOperation = "xor";
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, target.width, target.height);
+    ctx.restore();
+  }
+
   if (!root || !canvas || root.hidden) {
     // Already hidden by the sync skip-check above (or markup is missing) — nothing to play.
     reveal();
@@ -109,6 +146,7 @@
             ({ DotLottie }) =>
               new Promise<void>((resolve) => {
                 DotLottie.setWasmUrl(wasmUrl);
+                const ctx = canvas.getContext("2d");
                 const player = new DotLottie({
                   canvas,
                   src: lottieSrc,
@@ -118,6 +156,9 @@
                   layout: { fit: "contain", align: [0.5, 0.5] },
                   renderConfig: { autoResize: true },
                 });
+                if (ctx) {
+                  player.addEventListener("render", () => punchHoles(ctx, canvas));
+                }
                 player.addEventListener("complete", () => resolve());
                 player.addEventListener("loadError", () => resolve());
                 player.addEventListener("renderError", () => resolve());
@@ -147,7 +188,10 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--color-grey-950);
+    /* No background here on purpose: the canvas paints its own black fill
+       and punches see-through holes for the logo glyphs every frame (see
+       punchHoles() above). An opaque div background would sit behind the
+       canvas and defeat the see-through effect. */
     opacity: 1;
     transition: opacity 0.5s ease;
   }
