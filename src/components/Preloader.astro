@@ -153,7 +153,10 @@
                   autoplay: true,
                   loop: false,
                   backgroundColor: "transparent",
-                  layout: { fit: "contain", align: [0.5, 0.5] },
+                  // "cover" (not "contain"): scale up to fill the whole viewport with
+                  // no letterbox bars on wide screens, cropping overflow top/bottom
+                  // instead — the logo sits centered with margin to spare either way.
+                  layout: { fit: "cover", align: [0.5, 0.5] },
                   renderConfig: { autoResize: true },
                 });
                 if (ctx) {
