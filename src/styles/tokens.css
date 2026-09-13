@@ -1,0 +1,95 @@
+/*
+ * Design tokens synced from Figma Variables (file 6uC4cxwQmVPEKHxzRDqcEW, "UI KIT" + Home 1440 frame).
+ * Colors and type scale below are 1:1 with the bound Figma Variables.
+ * Spacing has no bound Figma Variables in this file — see the note near --space-* below.
+ */
+
+:root {
+  /* --- Color: grey (neutral) --- */
+  --color-grey-50: #ffffff;
+  --color-grey-100: #fefcf6;
+  --color-grey-200: #f5f3eb;
+  --color-grey-300: #d6d4cb;
+  --color-grey-400: #b6b4aa;
+  --color-grey-500: #93928b;
+  --color-grey-600: #727069;
+  --color-grey-700: #55544e;
+  --color-grey-800: #353431;
+  --color-grey-900: #151514;
+  --color-grey-950: #000000;
+
+  /* Black-alpha overlays (named grey-Np in Figma, N = opacity %) */
+  --color-grey-5p: #0000000d;
+  --color-grey-10p: #0000001a;
+  --color-grey-20p: #00000033;
+
+  /* --- Color: green (primary accent) --- */
+  --color-green-50: #e3f7e8;
+  --color-green-100: #cbf1d5;
+  --color-green-200: #9ee5b1;
+  --color-green-300: #68d785;
+  --color-green-400: #42c263;
+  --color-green-500: #2ca763;
+  --color-green-600: #138546;
+
+  /* Green-alpha overlays */
+  --color-green-10p: #2ca7631a;
+  --color-green-20p: #2ca76333;
+
+  /* --- Color: orange (secondary accent) --- */
+  --color-orange-100: #fdf0cd;
+  --color-orange-200: #ffe498;
+  --color-orange-500: #f5c133;
+  --color-orange-600: #e9ae0c;
+
+  /* --- Typography: font family --- */
+  --font-family-base: "Rethink Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* --- Typography scale (family/weight/size fixed by Figma text styles) --- */
+  /* title/100..800 — ExtraBold (800) display headings */
+  --font-title-100-size: 1.5rem;    /* 24px */
+  --font-title-100-line: 1.18em;
+  --font-title-200-size: 1.75rem;   /* 28px */
+  --font-title-200-line: 1.15em;
+  --font-title-400-size: 2.5rem;    /* 40px */
+  --font-title-400-line: 1.12em;
+  --font-title-600-size: 5rem;      /* 80px */
+  --font-title-600-line: 1em;
+  --font-title-800-size: 6.25rem;   /* 100px */
+  --font-title-800-line: 0.9em;
+  --font-title-weight: 800;
+
+  /* body/100..400 — Medium (500) copy text */
+  --font-body-100-size: 0.875rem;   /* 14px */
+  --font-body-100-line: 1.25em;
+  --font-body-200-size: 1rem;       /* 16px */
+  --font-body-200-line: 1.25em;
+  --font-body-400-size: 1.3125rem;  /* 21px */
+  --font-body-400-line: 1.2em;
+  --font-body-weight: 500;
+
+  /* upper/100..200 — ExtraBold (800) uppercase eyebrow labels */
+  --font-upper-100-size: 0.875rem;  /* 14px */
+  --font-upper-100-tracking: 0.12em;
+  --font-upper-200-size: 1rem;      /* 16px */
+  --font-upper-200-tracking: 0.08em;
+  --font-upper-line: 1em;
+  --font-upper-weight: 800;
+
+  /*
+   * Spacing: no bound Figma Variables were found for spacing/radius in this file.
+   * This is a conventional 4/8px-based scale inferred from observed layout values
+   * (e.g. 16/24/32/40/64/80 turn up repeatedly across sections) — not a literal
+   * Figma token export. Per-component radii are read from Figma per component
+   * as they're built instead of guessed here.
+   */
+  --space-1: 0.25rem;  /* 4px */
+  --space-2: 0.5rem;   /* 8px */
+  --space-3: 0.75rem;  /* 12px */
+  --space-4: 1rem;     /* 16px */
+  --space-6: 1.5rem;   /* 24px */
+  --space-8: 2rem;     /* 32px */
+  --space-10: 2.5rem;  /* 40px */
+  --space-16: 4rem;    /* 64px */
+  --space-20: 5rem;    /* 80px */
+}

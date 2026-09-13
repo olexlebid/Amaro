@@ -1,0 +1,88 @@
+/* Typography scale utilities — see src/styles/tokens.css for the underlying values. */
+
+.u-title-100 {
+  font-family: var(--font-family-base);
+  font-weight: var(--font-title-weight);
+  font-size: var(--font-title-100-size);
+  line-height: var(--font-title-100-line);
+}
+
+.u-title-200 {
+  font-family: var(--font-family-base);
+  font-weight: var(--font-title-weight);
+  font-size: var(--font-title-200-size);
+  line-height: var(--font-title-200-line);
+}
+
+.u-title-400 {
+  font-family: var(--font-family-base);
+  font-weight: var(--font-title-weight);
+  font-size: var(--font-title-400-size);
+  line-height: var(--font-title-400-line);
+}
+
+.u-title-600 {
+  font-family: var(--font-family-base);
+  font-weight: var(--font-title-weight);
+  font-size: var(--font-title-600-size);
+  line-height: var(--font-title-600-line);
+}
+
+.u-title-800 {
+  font-family: var(--font-family-base);
+  font-weight: var(--font-title-weight);
+  font-size: var(--font-title-800-size);
+  line-height: var(--font-title-800-line);
+}
+
+.u-body-100 {
+  font-family: var(--font-family-base);
+  font-weight: var(--font-body-weight);
+  font-size: var(--font-body-100-size);
+  line-height: var(--font-body-100-line);
+}
+
+.u-body-200 {
+  font-family: var(--font-family-base);
+  font-weight: var(--font-body-weight);
+  font-size: var(--font-body-200-size);
+  line-height: var(--font-body-200-line);
+}
+
+.u-body-400 {
+  font-family: var(--font-family-base);
+  font-weight: var(--font-body-weight);
+  font-size: var(--font-body-400-size);
+  line-height: var(--font-body-400-line);
+}
+
+.u-upper-100 {
+  font-family: var(--font-family-base);
+  font-weight: var(--font-upper-weight);
+  font-size: var(--font-upper-100-size);
+  line-height: var(--font-upper-line);
+  letter-spacing: var(--font-upper-100-tracking);
+  text-transform: uppercase;
+}
+
+.u-upper-200 {
+  font-family: var(--font-family-base);
+  font-weight: var(--font-upper-weight);
+  font-size: var(--font-upper-200-size);
+  line-height: var(--font-upper-line);
+  letter-spacing: var(--font-upper-200-tracking);
+  text-transform: uppercase;
+}
+
+/* Visually hide an element while keeping it available to screen readers */
+.u-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

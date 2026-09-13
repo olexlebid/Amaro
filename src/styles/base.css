@@ -1,0 +1,72 @@
+/* Global reset and base element styles. Component-specific styles live with their components. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-family-base);
+  font-weight: var(--font-body-weight);
+  font-size: var(--font-body-200-size);
+  line-height: var(--font-body-200-line);
+  color: var(--color-grey-900);
+  background: var(--color-grey-100);
+}
+
+img,
+picture,
+video {
+  display: block;
+  max-width: 100%;
+}
+
+h1,
+h2,
+h3,
+h4,
+p,
+figure {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+/* Shared section/container rhythm — see CLAUDE.md §7 markup convention */
+.section {
+  padding-block: var(--space-20);
+}
+
+.container {
+  max-width: 1312px; /* matches the Home 1440 content width (1440 - 2 * 64px side padding) */
+  margin-inline: auto;
+  padding-inline: var(--space-6);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
