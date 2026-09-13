@@ -1,0 +1,237 @@
+---
+// Site footer. Figma symbol "Footer" (node 484:1228) — content here is real,
+// finished German copy (no placeholders), taken 1:1 from the design.
+import { Image } from "astro:assets";
+import Button from "./Button.astro";
+import adtvLogo from "../assets/partner-logos/adtv_logo.png";
+import idoLogo from "../assets/partner-logos/ido_logo.png";
+import tafLogo from "../assets/partner-logos/taf_logo.png";
+import datLogo from "../assets/partner-logos/dat_logo.png";
+import hygieneLogo from "../assets/partner-logos/hygiene_logo.png";
+
+const currentYear = new Date().getFullYear();
+
+const columns = [
+  {
+    heading: "Schule:",
+    links: ["Trainingsplan", "Amaro Team", "Mediathek", "Aktuelles", "Amaro Fashion", "Feiern bei uns", "Kontakt"],
+  },
+  {
+    heading: "Kurse:",
+    links: ["Kindertanz & Hip-Hop", "Masterclass", "Hochzeitstanz", "Gesellschaftstanz", "Schülerkurse"],
+  },
+  {
+    heading: "Rechtliches:",
+    links: ["Impressum", "Datenschutz", "Cookie-Einstellungen", "Kündigen hier", "Häufige Fragen"],
+  },
+  {
+    heading: "Social:",
+    links: ["Instagram", "Spotify", "Facebook", "YouTube"],
+  },
+];
+
+const partnerLogos = [
+  { src: adtvLogo, alt: "ADTV — Allgemeiner Deutscher Tanzlehrerverband" },
+  { src: idoLogo, alt: "IDO — International Dance Organization" },
+  { src: tafLogo, alt: "TAF Germany" },
+  { src: datLogo, alt: "DAT" },
+  { src: hygieneLogo, alt: "Hygiene-zertifiziert" },
+];
+---
+
+<footer class="footer">
+  <div class="footer__watermark" aria-hidden="true">
+    <img src="/logo/amaro-logo-dark.svg" alt="" />
+  </div>
+
+  <div class="section footer__content">
+    <div class="container footer__grid">
+      <div class="footer__about">
+        <img class="footer__logo" src="/logo/amaro-logo-dark.svg" alt="Tanzschule Amaro" width="103" height="48" />
+        <address class="footer__address">
+          <p>ADTV-Tanzschule Amaro</p>
+          <p>Badenstedter Str. 132,<br />30455 Hannover</p>
+          <p><a href="tel:+491772998096">+49 177 299 80 96</a></p>
+          <p><a href="mailto:info@tanzschule-amaro.de">info@tanzschule-amaro.de</a></p>
+          <p class="footer__hours-label">Bürozeiten:</p>
+          <p>Mo–Mi 16:00–20:00,<br />Do–Fr 16:00–19:00</p>
+        </address>
+      </div>
+
+      {columns.map((column) => (
+        <nav class="footer__column" aria-label={column.heading.replace(":", "")}>
+          <p class="footer__column-heading">{column.heading}</p>
+          <ul>
+            {column.links.map((label) => (
+              <li><a href="#">{label}</a></li>
+            ))}
+          </ul>
+        </nav>
+      ))}
+    </div>
+
+    <div class="container footer__member">
+      <p class="footer__member-label">Bist du schon dabei?</p>
+      <Button variant="tertiary" icon="right" href="#">Mitgliederportal einloggen</Button>
+    </div>
+
+    <div class="container footer__partners">
+      {partnerLogos.map((logo) => (
+        <Image src={logo.src} alt={logo.alt} height={60} />
+      ))}
+    </div>
+
+    <div class="container footer__bottom">
+      <p>© {currentYear} Tanzschule Amaro in Hannover-Badenstedt</p>
+      <p>Entwickler @olexlebid</p>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    position: relative;
+    overflow: hidden;
+    background: var(--color-grey-100);
+  }
+
+  .footer__watermark {
+    position: absolute;
+    inset: auto 0 -8% 0;
+    pointer-events: none;
+    opacity: 0.04;
+  }
+
+  .footer__watermark img {
+    width: 100%;
+    height: auto;
+  }
+
+  .footer__content {
+    position: relative;
+  }
+
+  .footer__grid {
+    display: grid;
+    grid-template-columns: 1.6fr repeat(4, 1fr);
+    gap: var(--space-8);
+    margin-bottom: var(--space-16);
+  }
+
+  .footer__logo {
+    display: block;
+    margin-bottom: var(--space-6);
+  }
+
+  .footer__address {
+    /* Browsers italicize <address> by default — this isn't in the design */
+    font-style: normal;
+  }
+
+  .footer__address p {
+    font-family: var(--font-family-base);
+    font-weight: 600;
+    font-size: 1rem;
+    line-height: 1.5em;
+    color: var(--color-grey-900);
+    margin-bottom: var(--space-2);
+  }
+
+  .footer__address a {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .footer__hours-label {
+    color: var(--color-grey-500) !important;
+    font-weight: 500 !important;
+  }
+
+  .footer__column-heading {
+    font-family: var(--font-family-base);
+    font-weight: 800;
+    font-size: 0.875rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-grey-400);
+    margin-bottom: var(--space-4);
+  }
+
+  .footer__column ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .footer__column a {
+    font-family: var(--font-family-base);
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--color-grey-900);
+  }
+
+  .footer__column a:hover {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .footer__member {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-4);
+    margin-bottom: var(--space-16);
+  }
+
+  .footer__member-label {
+    font-family: var(--font-family-base);
+    font-weight: 800;
+    font-size: 0.875rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-grey-400);
+  }
+
+  .footer__partners {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-10);
+    margin-bottom: var(--space-16);
+  }
+
+  .footer__partners :global(img) {
+    width: auto;
+    max-height: 60px;
+  }
+
+  .footer__bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-4);
+    font-family: var(--font-family-base);
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--color-grey-900);
+  }
+
+  @media (max-width: 960px) {
+    .footer__grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .footer__about {
+      grid-column: 1 / -1;
+    }
+
+    .footer__bottom {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+</style>

@@ -1,0 +1,94 @@
+---
+// Reusable pill button. Mirrors the Figma "Button" component (node 516:416):
+// 4 color variants x 3 icon positions.
+import ArrowIcon from "./icons/ArrowIcon.astro";
+
+interface Props {
+  variant?: "primary" | "secondary" | "white" | "tertiary";
+  icon?: "right" | "left" | "none";
+  href?: string;
+  class?: string;
+}
+
+const { variant = "primary", icon = "right", href, class: className } = Astro.props;
+const Tag = href ? "a" : "button";
+---
+
+<Tag
+  class:list={["button", `button--${variant}`, `button--icon-${icon}`, className]}
+  href={href}
+>
+  {icon === "left" && <ArrowIcon class="button__icon" />}
+  <span class="button__label"><slot /></span>
+  {icon === "right" && <ArrowIcon class="button__icon" />}
+</Tag>
+
+<style>
+  .button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    height: 40px;
+    padding-block: var(--space-2);
+    padding-inline: var(--space-4);
+    border-radius: 32px;
+    border: 1px solid transparent;
+    font-family: var(--font-family-base);
+    font-weight: 700;
+    font-size: 1rem;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    text-align: center;
+  }
+
+  .button--icon-right {
+    padding-inline: var(--space-4) var(--space-3);
+  }
+
+  .button--icon-left {
+    padding-inline: var(--space-3) var(--space-4);
+  }
+
+  .button__icon {
+    flex-shrink: 0;
+  }
+
+  /* Primary — green pill, used for the main conversion CTA (Probestunde buchen) */
+  .button--primary {
+    background: var(--color-green-500);
+    border-color: var(--color-green-600);
+    color: var(--color-grey-50);
+    text-shadow: 0 0 4px var(--color-green-600);
+  }
+
+  /* Secondary — dark pill, used on light sections as a lower-emphasis action */
+  .button--secondary {
+    background: var(--color-grey-900);
+    border-color: var(--color-grey-950);
+    color: var(--color-grey-50);
+    text-shadow: 0 0 4px var(--color-grey-950);
+  }
+
+  /* White — pill for use on dark/photo backgrounds (e.g. over the hero image) */
+  .button--white {
+    background: var(--color-grey-50);
+    border-color: var(--color-grey-10p);
+    color: var(--color-grey-900);
+  }
+
+  /* Tertiary — plain underlined text link, no pill */
+  .button--tertiary {
+    height: auto;
+    padding: 0;
+    border: none;
+    border-bottom: 1.6px solid var(--color-grey-950);
+    border-radius: 0;
+    color: var(--color-grey-900);
+  }
+
+  .button:focus-visible {
+    outline: 2px solid var(--color-green-600);
+    outline-offset: 2px;
+  }
+</style>
