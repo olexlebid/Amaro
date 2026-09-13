@@ -18,6 +18,9 @@ body {
   line-height: var(--font-body-200-line);
   color: var(--color-grey-900);
   background: var(--color-grey-100);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 img,
