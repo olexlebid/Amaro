@@ -1,0 +1,104 @@
+---
+// FAQ section — static Q&A list (no accordion in the Figma design). Node 563:3977.
+import Button from "../Button.astro";
+
+const faqs = [
+  {
+    question: "Was soll ich zur ersten Probestunde anziehen?",
+    answer: "Bequeme Kleidung und Sportschuhe reichen völlig. Für Kinder empfehlen wir Turnschuhe ohne dunkle Sohle, die den Boden markieren.",
+  },
+  {
+    question: "Dürfen Eltern beim Unterricht zuschauen?",
+    answer: "Ja, bei der ersten Probestunde sind Eltern jederzeit willkommen. Danach lassen wir den Kindern gern ihren eigenen Raum.",
+  },
+  {
+    question: "Brauche ich für den Paartanzkurs einen festen Partner?",
+    answer: "Nein, wir gleichen unsere Gruppen aktiv aus. Auch alleine kann man bei uns einsteigen.",
+  },
+  {
+    question: "Wie läuft die Anmeldung ab?",
+    answer: "Über unser Buchungssystem wählst du Kurs, Alter und einen freien Termin und meldest dich in wenigen Minuten online an. Kein Anruf nötig.",
+  },
+  {
+    question: "Sind die Kurse mit dem Bildungspaket (BuT) kombinierbar?",
+    answer: "Ja, unsere Kinder- und Jugendkurse sind mit BuT kombinierbar. Sprich uns bei der Anmeldung einfach darauf an.",
+  },
+];
+---
+
+<section class="faq section" id="faq">
+  <div class="container faq__grid">
+    <div class="faq__intro">
+      <p class="faq__eyebrow u-upper-200">FAQs</p>
+      <h2 class="faq__heading">Häufige Fragen</h2>
+      <Button variant="primary" icon="right" href="#">Weitere Fragen</Button>
+    </div>
+
+    <dl class="faq__list">
+      {faqs.map((item) => (
+        <div class="faq__item">
+          <dt class="faq__question">{item.question}</dt>
+          <dd class="faq__answer">{item.answer}</dd>
+        </div>
+      ))}
+    </dl>
+  </div>
+</section>
+
+<style>
+  .faq__grid {
+    display: grid;
+    grid-template-columns: 1fr 1.3fr;
+    gap: var(--space-16);
+  }
+
+  .faq__intro {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-6);
+  }
+
+  .faq__eyebrow {
+    color: var(--color-grey-500);
+  }
+
+  .faq__heading {
+    font-family: var(--font-family-base);
+    font-weight: var(--font-title-weight);
+    font-size: clamp(2.5rem, 6vw, var(--font-title-600-size));
+    line-height: var(--font-title-600-line);
+    color: var(--color-grey-900);
+  }
+
+  .faq__list {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-10);
+  }
+
+  .faq__question {
+    font-family: var(--font-family-base);
+    font-weight: var(--font-title-weight);
+    font-size: var(--font-title-100-size);
+    line-height: var(--font-title-100-line);
+    color: var(--color-grey-900);
+    margin-bottom: var(--space-3);
+  }
+
+  .faq__answer {
+    margin: 0;
+    font-family: var(--font-family-base);
+    font-weight: var(--font-body-weight);
+    font-size: var(--font-body-200-size);
+    line-height: var(--font-body-200-line);
+    color: var(--color-grey-600);
+  }
+
+  @media (max-width: 900px) {
+    .faq__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

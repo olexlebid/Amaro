@@ -1,0 +1,94 @@
+---
+// "Das Team seid Ihr." — About section. Figma node 563:3998.
+import Button from "../Button.astro";
+import decorativeMark from "../../assets/startseite/about_decorative_mark.svg";
+---
+
+<section class="about section">
+  <div class="container about__grid">
+    <div class="about__intro">
+      <p class="about__eyebrow u-upper-200">Über uns</p>
+      <p class="about__heading">Das Team seid Ihr.</p>
+    </div>
+
+    <img class="about__mark" src={decorativeMark.src} alt="" aria-hidden="true" />
+
+    <div class="about__copy">
+      <p class="about__text">
+        Diesen Satz meinen wir ernst. Seit über 20 Jahren steht bei uns in Badenstedt jede Woche
+        dieselbe Fläche bereit, und wer sie betritt, gehört dazu. Vierjährige im Kindertanz.
+        Jugendliche, die für die Meisterschaft trainieren. Paare, die drei Wochen vor der Hochzeit
+        noch schnell tanzen lernen wollen.
+      </p>
+      <p class="about__note">
+        Martin und Romeleen Priebe führen die Schule. Beide ADTV, beide lieber im Saal als im Büro.
+      </p>
+      <Button variant="primary" icon="right" href="#">Unser Team</Button>
+    </div>
+  </div>
+</section>
+
+<style>
+  .about__grid {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-16);
+    align-items: center;
+  }
+
+  .about__eyebrow {
+    color: var(--color-grey-500);
+    margin-bottom: var(--space-6);
+  }
+
+  .about__heading {
+    font-family: var(--font-family-base);
+    font-weight: var(--font-title-weight);
+    font-size: clamp(2.5rem, 6vw, var(--font-title-600-size));
+    line-height: var(--font-title-600-line);
+    color: var(--color-grey-900);
+  }
+
+  .about__mark {
+    position: absolute;
+    left: 36%;
+    top: 62%;
+    width: 22%;
+    pointer-events: none;
+  }
+
+  .about__copy {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-6);
+    max-width: 496px;
+  }
+
+  .about__text {
+    font-family: var(--font-family-base);
+    font-weight: var(--font-body-weight);
+    font-size: var(--font-body-400-size);
+    line-height: var(--font-body-400-line);
+    color: var(--color-grey-700);
+  }
+
+  .about__note {
+    font-family: var(--font-family-base);
+    font-weight: var(--font-body-weight);
+    font-size: var(--font-body-200-size);
+    line-height: var(--font-body-200-line);
+    color: var(--color-grey-500);
+  }
+
+  @media (max-width: 900px) {
+    .about__grid {
+      grid-template-columns: 1fr;
+    }
+
+    .about__mark {
+      display: none;
+    }
+  }
+</style>

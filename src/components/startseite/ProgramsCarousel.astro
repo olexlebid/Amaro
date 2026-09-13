@@ -1,0 +1,204 @@
+---
+// Course-preview carousel. Figma node 563:3906.
+//
+// GAP: Figma's carousel only has 1 of an evidently intended 5 slides
+// finished (progress indicator reads "1/5", matching the header's 5
+// Tanzangebot categories). The second Figma slide ("Masterschaft") is an
+// unedited duplicate of this one — same photo, same age tags, same
+// description — so it isn't included here rather than ship mismatched
+// content. Add the other 4 slides to `slides` below once Figma has them
+// (or real photos + copy are approved) — the carousel mechanics already
+// support more than one.
+import { Image } from "astro:assets";
+import Button from "../Button.astro";
+import kindertanz from "../../assets/startseite/kindertanz_giphop.jpg";
+
+const slides = [
+  {
+    heading: "Kindertanz & Hip-Hop",
+    image: kindertanz,
+    ageTags: ["Mini Kids (3+)", "Kids (6+)", "Junioren (12+)", "Adults (16+)", "Classic"],
+    description: "Von den ersten Tanzschritten mit 3 Jahren bis zur eigenen Streetdance-Crew: für jedes Alter der passende Rhythmus.",
+  },
+];
+---
+
+<section class="programs section">
+  <div class="programs__track">
+    {slides.map((slide) => (
+      <article class="program-slide">
+        <div class="program-slide__media">
+          <Image src={slide.image} alt={`Tanzstunde ${slide.heading}`} width={520} height={420} />
+          <Button variant="primary" icon="none" href="#" class="program-slide__join">Drin</Button>
+        </div>
+        <h2 class="program-slide__heading">{slide.heading}</h2>
+        <div class="program-slide__details">
+          <ul class="program-slide__tags">
+            {slide.ageTags.map((tag) => (
+              <li><a href="#">{tag}</a></li>
+            ))}
+          </ul>
+          <p class="program-slide__description">{slide.description}</p>
+        </div>
+      </article>
+    ))}
+  </div>
+
+  {slides.length > 1 && (
+    <div class="container programs__controls">
+      <div class="programs__progress">
+        <div class="programs__progress-bar" style={`width:${100 / slides.length}%`}></div>
+      </div>
+      <div class="programs__controls-row">
+        <span class="programs__counter">1/{slides.length}</span>
+        <Button variant="tertiary" icon="right" href="#">Trainingsplan</Button>
+      </div>
+    </div>
+  )}
+</section>
+
+<style>
+  .programs__track {
+    display: flex;
+    gap: var(--space-6);
+    overflow-x: auto;
+    padding-inline: max(var(--space-6), calc((100vw - 1312px) / 2));
+    scroll-snap-type: x proximity;
+  }
+
+  .program-slide {
+    position: relative;
+    flex-shrink: 0;
+    scroll-snap-align: start;
+    display: grid;
+    grid-template-columns: 520px 280px;
+    grid-template-rows: auto auto;
+    column-gap: var(--space-6);
+  }
+
+  .program-slide__heading {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    align-self: end;
+    font-family: var(--font-family-base);
+    font-weight: var(--font-title-weight);
+    font-size: clamp(2.5rem, 6vw, var(--font-title-600-size));
+    line-height: var(--font-title-600-line);
+    color: var(--color-grey-100);
+    mix-blend-mode: difference;
+    margin-bottom: -1.2em;
+    position: relative;
+    z-index: 1;
+    max-width: 520px;
+  }
+
+  .program-slide__media {
+    grid-column: 1;
+    grid-row: 2;
+    position: relative;
+  }
+
+  .program-slide__media :global(img) {
+    display: block;
+    width: 520px;
+    height: 420px;
+    object-fit: cover;
+    border-radius: 16px;
+  }
+
+  .program-slide__join {
+    position: absolute;
+    right: var(--space-4);
+    bottom: var(--space-4);
+  }
+
+  .program-slide__details {
+    grid-column: 2;
+    grid-row: 2;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+    align-self: end;
+    padding-bottom: var(--space-4);
+  }
+
+  .program-slide__tags {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .program-slide__tags a {
+    font-family: var(--font-family-base);
+    font-size: 1rem;
+    letter-spacing: -0.01em;
+    color: var(--color-grey-950);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .program-slide__description {
+    font-family: var(--font-family-base);
+    font-weight: var(--font-body-weight);
+    font-size: var(--font-body-200-size);
+    line-height: var(--font-body-200-line);
+    color: var(--color-grey-600);
+  }
+
+  .programs__controls {
+    margin-top: var(--space-8);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .programs__progress {
+    height: 1px;
+    background: var(--color-grey-300);
+  }
+
+  .programs__progress-bar {
+    height: 1px;
+    background: var(--color-grey-900);
+  }
+
+  .programs__controls-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .programs__counter {
+    font-family: var(--font-family-base);
+    font-weight: 600;
+    font-size: 1rem;
+    letter-spacing: 0.02em;
+    color: var(--color-grey-900);
+  }
+
+  @media (max-width: 900px) {
+    .program-slide {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto auto auto;
+      width: 85vw;
+    }
+
+    .program-slide__media,
+    .program-slide__details {
+      grid-column: 1;
+    }
+
+    .program-slide__media :global(img) {
+      width: 100%;
+      height: auto;
+      aspect-ratio: 520 / 420;
+    }
+
+    .program-slide__details {
+      grid-row: 3;
+    }
+  }
+</style>

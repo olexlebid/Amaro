@@ -1,0 +1,211 @@
+---
+// Google-review style testimonial wall, two rows that scroll gently sideways.
+// Figma node 563:4012. All 8 quotes are real, verbatim customer reviews.
+import Button from "../Button.astro";
+import starIcon from "../../assets/icons/star.svg";
+import googleLogo from "../../assets/icons/google_reviews_logo.svg";
+
+const rowOne = [
+  {
+    quote: "Bei der Tanzschule Amaro haben wir nicht nur Spaß beim Tanzen, wir haben auch viele neue Freunde kennengelernt!",
+    author: "Annalena & Amalia, Hip Hop",
+  },
+  {
+    quote: "Wir haben unseren Hochzeitstanz bei Martin gelernt und möchten uns ganz herzlich dafür bedanken. Er ist ein wirklich großartiger Tanzlehrer und hat sich viel Zeit für uns genommen …",
+    author: "Lida M, Hochzeitstanz",
+  },
+  {
+    quote: "Spaß steht natürlich an erster Stelle – aber meine Tochter ist selbstsicherer und mutiger durch das Tanzen geworden. Danke!",
+    author: "Nicole & Ennie, Kindertanz",
+  },
+  {
+    quote: "Hervorragende Tanzschule! Die Tanzschule Amaro hat vielleicht nicht die Reputation und den Ruf der „großen“ Tanzschule in Hannover, steht ihr aber qualitativ in Nichts nach …",
+    author: "FJ G, Hip Hop",
+  },
+];
+
+const rowTwo = [
+  {
+    quote: "Meine Verlobte und ich haben hier für unseren Hochzeitstanz geübt. Martin ist ein toller Lehrer und Mensch; er hat uns wirklich einen schönen Tanz beigebracht. Wir können die Tanzschule wirklich …",
+    author: "DeJoo, Hip Hop",
+  },
+  {
+    quote: "Three years ago, we decided to enroll our daughter in dance classes here, and it has proven to be absolutely the right decision. The school has a professional …",
+    author: "Yi Wan, Hochzeitstanz",
+  },
+  {
+    quote: "Die Tanzschule Amaro war für uns bei der Vorbereitung auf unseren Hochzeitstanz ein absoluter Glückstreffer. Wir sind beides Anfänger, aber Martin war für uns der perfekte Tanzlehrer, da er …",
+    author: "Be Nhy, Kindertanz",
+  },
+  {
+    quote: "Sehr nettes Team. Preis Top. Und das wichtigste, durch euch haben wir zu unserer Hochzeit so richtig geglänzt. Dankeschön",
+    author: "Annalena und Amalia, Hip Hop",
+  },
+];
+---
+
+<section class="testimonials section">
+  <div class="container testimonials__header">
+    <h2 class="testimonials__heading">Was unsere Kunden sagen</h2>
+    <div class="testimonials__actions">
+      <div class="testimonials__score">
+        <img src={googleLogo.src} alt="" width="13" height="12" />
+        <div class="testimonials__stars" aria-hidden="true">
+          <img src={starIcon.src} alt="" /><img src={starIcon.src} alt="" /><img src={starIcon.src} alt="" /><img src={starIcon.src} alt="" /><img src={starIcon.src} alt="" />
+        </div>
+        <span class="testimonials__score-label">4.8 score</span>
+      </div>
+      <Button variant="tertiary" icon="right" href="#">Mehr Bewertungen auf Google</Button>
+    </div>
+  </div>
+
+  {[rowOne, rowTwo].map((row, i) => (
+    <div class="testimonials__row" style={i === 1 ? "--direction: reverse" : ""}>
+      <div class="testimonials__track">
+        {[...row, ...row].map((item) => (
+          <article class="testimonial-card">
+            <p class="testimonial-card__quote">{item.quote}</p>
+            <div class="testimonial-card__foot">
+              <div class="testimonial-card__stars" aria-hidden="true">
+                <img src={starIcon.src} alt="" /><img src={starIcon.src} alt="" /><img src={starIcon.src} alt="" /><img src={starIcon.src} alt="" /><img src={starIcon.src} alt="" />
+              </div>
+              <p class="testimonial-card__author">{item.author}</p>
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  ))}
+</section>
+
+<style>
+  .testimonials {
+    overflow: hidden;
+  }
+
+  .testimonials__header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+    margin-bottom: var(--space-10);
+  }
+
+  .testimonials__heading {
+    font-family: var(--font-family-base);
+    font-weight: var(--font-title-weight);
+    font-size: clamp(2.5rem, 6vw, var(--font-title-600-size));
+    line-height: var(--font-title-600-line);
+    color: var(--color-grey-900);
+  }
+
+  .testimonials__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-6);
+  }
+
+  .testimonials__score {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .testimonials__stars,
+  .testimonial-card__stars {
+    display: flex;
+    gap: 2px;
+  }
+
+  .testimonials__stars img,
+  .testimonial-card__stars img {
+    width: 14px;
+    height: 14px;
+  }
+
+  .testimonials__score-label {
+    font-family: var(--font-family-base);
+    font-size: 0.75rem;
+    color: var(--color-grey-900);
+  }
+
+  .testimonials__row {
+    --direction: normal;
+    margin-bottom: var(--space-4);
+    mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+  }
+
+  .testimonials__track {
+    display: flex;
+    gap: var(--space-4);
+    width: max-content;
+    animation: marquee 60s linear infinite;
+    animation-direction: var(--direction);
+  }
+
+  .testimonials__row:hover .testimonials__track {
+    animation-play-state: paused;
+  }
+
+  .testimonial-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: var(--space-6);
+    width: 392px;
+    height: 240px;
+    padding: var(--space-6) var(--space-6) var(--space-4);
+    background: var(--color-grey-200);
+    border: 1px solid var(--color-grey-300);
+    border-radius: 16px;
+    flex-shrink: 0;
+  }
+
+  .testimonial-card__quote {
+    font-family: var(--font-family-base);
+    font-weight: var(--font-body-weight);
+    font-size: var(--font-body-400-size);
+    line-height: var(--font-body-400-line);
+    color: var(--color-grey-700);
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 5;
+    -webkit-box-orient: vertical;
+  }
+
+  .testimonial-card__foot {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+  }
+
+  .testimonial-card__author {
+    font-family: var(--font-family-base);
+    font-weight: var(--font-body-weight);
+    font-size: var(--font-body-100-size);
+    color: var(--color-grey-500);
+  }
+
+  @keyframes marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .testimonials__track {
+      animation: none;
+      flex-wrap: wrap;
+      overflow-x: auto;
+    }
+  }
+
+  @media (max-width: 900px) {
+    .testimonials__actions {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+</style>

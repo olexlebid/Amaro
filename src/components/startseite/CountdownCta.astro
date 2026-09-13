@@ -1,0 +1,231 @@
+---
+// "Zähl einmal mit" — playful press-and-hold CTA inside a photo collage.
+// Figma node 563:4142. The 8 template poster images in Figma weren't real
+// Amaro photos, so this reuses real gallery/class photos instead.
+import { Image } from "astro:assets";
+import gallery01 from "../../assets/startseite/gallery_01.jpg";
+import gallery02 from "../../assets/startseite/gallery_02.jpg";
+import gallery03 from "../../assets/startseite/gallery_03.jpg";
+import gallery04 from "../../assets/startseite/gallery_04.png";
+import kindertanz from "../../assets/startseite/kindertanz_giphop.jpg";
+
+const mosaic = [
+  { src: gallery03, top: "0%", left: "18%", size: "18%", rotate: "-8.6deg" },
+  { src: kindertanz, top: "4%", left: "68%", size: "17%", rotate: "0deg" },
+  { src: gallery01, top: "2%", left: "0%", size: "20%", rotate: "-9.6deg" },
+  { src: gallery04, top: "20%", left: "83%", size: "17%", rotate: "7.6deg" },
+  { src: gallery02, top: "47%", left: "0%", size: "20%", rotate: "5.6deg" },
+  { src: kindertanz, top: "45%", left: "30%", size: "24%", rotate: "16.5deg" },
+  { src: gallery03, top: "52%", left: "62%", size: "20%", rotate: "-9.6deg" },
+  { src: gallery04, top: "55%", left: "84%", size: "18%", rotate: "5.2deg" },
+];
+---
+
+<section class="countdown-cta section">
+  <div class="container countdown-cta__stage">
+    <div class="countdown-cta__mosaic" aria-hidden="true">
+      {mosaic.map((tile) => (
+        <div
+          class="countdown-cta__tile"
+          style={`top:${tile.top}; left:${tile.left}; width:${tile.size}; --rotate:${tile.rotate}`}
+        >
+          <Image src={tile.src} alt="" width={260} height={260} />
+        </div>
+      ))}
+    </div>
+
+    <div class="countdown-cta__content">
+      <p class="countdown-cta__eyebrow u-upper-200">Mitmachen</p>
+      <h2 class="countdown-cta__heading">Zähl einmal mit</h2>
+      <p class="countdown-cta__subheading">Länger dauert der schwerste Teil nicht</p>
+
+      <a href="#" class="countdown-button" data-countdown-button data-hold-seconds="5">
+        <!-- TODO: Nimbus Cloud — completing the hold should open the Probestunde booking flow -->
+        <svg class="countdown-button__ring" viewBox="0 0 196 196" aria-hidden="true">
+          <circle class="countdown-button__ring-track" cx="98" cy="98" r="89" />
+          <circle class="countdown-button__ring-progress" cx="98" cy="98" r="89" data-countdown-progress />
+        </svg>
+        <span class="countdown-button__number" data-countdown-number>5</span>
+      </a>
+      <p class="countdown-cta__hint">[gedrückt halten]</p>
+    </div>
+  </div>
+</section>
+
+<script>
+  // Press-and-hold countdown: filling the ring over N seconds "counts you in".
+  // Falls back to an immediate click for keyboard/reduced-motion users.
+  const button = document.querySelector<HTMLAnchorElement>("[data-countdown-button]");
+  const progress = document.querySelector<SVGCircleElement>("[data-countdown-progress]");
+  const numberEl = document.querySelector<HTMLElement>("[data-countdown-number]");
+  if (button && progress && numberEl) {
+    const holdSeconds = Number(button.dataset.holdSeconds ?? "5");
+    const circumference = 2 * Math.PI * 89;
+    progress.style.strokeDasharray = `${circumference}`;
+    progress.style.strokeDashoffset = `${circumference}`;
+
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let frame: number;
+    let startTime: number;
+
+    function reset() {
+      cancelAnimationFrame(frame);
+      progress!.style.strokeDashoffset = `${circumference}`;
+      numberEl!.textContent = String(holdSeconds);
+    }
+
+    function tick(timestamp: number) {
+      if (!startTime) startTime = timestamp;
+      const elapsed = (timestamp - startTime) / 1000;
+      const ratio = Math.min(elapsed / holdSeconds, 1);
+      progress!.style.strokeDashoffset = `${circumference * (1 - ratio)}`;
+      numberEl!.textContent = String(Math.max(1, holdSeconds - Math.floor(elapsed)));
+      if (ratio < 1) {
+        frame = requestAnimationFrame(tick);
+      } else {
+        window.location.href = button!.href;
+      }
+    }
+
+    function startHold(event: Event) {
+      if (prefersReducedMotion) return;
+      event.preventDefault();
+      startTime = 0;
+      frame = requestAnimationFrame(tick);
+    }
+
+    button.addEventListener("pointerdown", startHold);
+    button.addEventListener("pointerup", reset);
+    button.addEventListener("pointerleave", reset);
+    button.addEventListener("keyup", (event) => {
+      if (event.key === "Enter" || event.key === " ") reset();
+    });
+  }
+</script>
+
+<style>
+  .countdown-cta {
+    overflow: hidden;
+  }
+
+  .countdown-cta__stage {
+    position: relative;
+    min-height: 560px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .countdown-cta__mosaic {
+    position: absolute;
+    inset: 0;
+  }
+
+  .countdown-cta__tile {
+    position: absolute;
+    aspect-ratio: 1;
+    transform: rotate(var(--rotate));
+    box-shadow: 0 12px 32px var(--color-grey-20p);
+    border-radius: 16px;
+    background: var(--color-grey-300);
+  }
+
+  .countdown-cta__tile :global(img) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 16px;
+  }
+
+  .countdown-cta__content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--space-3);
+    max-width: 606px;
+  }
+
+  .countdown-cta__eyebrow {
+    color: var(--color-grey-500);
+  }
+
+  .countdown-cta__heading {
+    font-family: var(--font-family-base);
+    font-weight: var(--font-title-weight);
+    font-size: clamp(2.5rem, 6vw, var(--font-title-600-size));
+    line-height: var(--font-title-600-line);
+    color: var(--color-grey-900);
+  }
+
+  .countdown-cta__subheading {
+    font-family: var(--font-family-base);
+    font-weight: var(--font-body-weight);
+    font-size: var(--font-body-400-size);
+    line-height: var(--font-body-400-line);
+    color: var(--color-grey-600);
+    margin-bottom: var(--space-6);
+  }
+
+  .countdown-button {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 196px;
+    height: 196px;
+    border-radius: 50%;
+    background: var(--color-grey-100);
+    border: 1px solid var(--color-grey-20p);
+  }
+
+  .countdown-button__ring {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+  }
+
+  .countdown-button__ring-track {
+    fill: none;
+    stroke: var(--color-grey-10p);
+    stroke-width: 8;
+  }
+
+  .countdown-button__ring-progress {
+    fill: none;
+    stroke: var(--color-green-500);
+    stroke-width: 8;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.05s linear;
+  }
+
+  .countdown-button__number {
+    position: relative;
+    font-family: var(--font-family-base);
+    font-weight: var(--font-body-weight);
+    font-size: 5rem;
+    line-height: 0.89em;
+    color: var(--color-grey-900);
+  }
+
+  .countdown-cta__hint {
+    margin-top: var(--space-3);
+    font-family: var(--font-family-base);
+    font-weight: var(--font-upper-weight);
+    font-size: var(--font-upper-100-size);
+    letter-spacing: var(--font-upper-100-tracking);
+    text-transform: uppercase;
+    color: var(--color-grey-700);
+  }
+
+  @media (max-width: 900px) {
+    .countdown-cta__mosaic {
+      display: none;
+    }
+  }
+</style>

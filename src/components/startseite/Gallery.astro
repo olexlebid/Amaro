@@ -1,0 +1,64 @@
+---
+// Fanned photo gallery, slightly rotated overlapping cards. Figma node 563:4007.
+import { Image } from "astro:assets";
+import gallery01 from "../../assets/startseite/gallery_01.jpg";
+import gallery02 from "../../assets/startseite/gallery_02.jpg";
+import gallery03 from "../../assets/startseite/gallery_03.jpg";
+import gallery04 from "../../assets/startseite/gallery_04.png";
+
+const photos = [
+  { src: gallery01, rotate: "-8deg", alt: "Pokal und Maskottchen nach einem Hip-Hop-Wettbewerb" },
+  { src: gallery02, rotate: "-0.6deg", alt: "Hip-Hop-Team von Amaro bei einem Bühnenauftritt" },
+  { src: gallery03, rotate: "-3.83deg", alt: "Tänzerinnen von Amaro backstage bei einem Wettbewerb" },
+  { src: gallery04, rotate: "-7.03deg", alt: "Amaro-Team feiert einen Auftritt" },
+];
+---
+
+<section class="gallery section">
+  <div class="gallery__row">
+    {photos.map((photo) => (
+      <div class="gallery__card" style={`--rotate: ${photo.rotate}`}>
+        <Image src={photo.src} alt={photo.alt} width={364} height={564} />
+      </div>
+    ))}
+  </div>
+</section>
+
+<style>
+  .gallery {
+    overflow: hidden;
+  }
+
+  .gallery__row {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-6);
+    padding-block: var(--space-10);
+  }
+
+  .gallery__card {
+    flex-shrink: 0;
+    transform: rotate(var(--rotate));
+    box-shadow: 0 20px 40px var(--color-grey-20p);
+    border-radius: 16px;
+  }
+
+  .gallery__card :global(img) {
+    display: block;
+    width: 227px;
+    height: 352px;
+    object-fit: cover;
+    border-radius: 16px;
+  }
+
+  @media (max-width: 900px) {
+    .gallery__row {
+      gap: var(--space-3);
+    }
+
+    .gallery__card :global(img) {
+      width: 140px;
+      height: 217px;
+    }
+  }
+</style>

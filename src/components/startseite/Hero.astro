@@ -1,0 +1,131 @@
+---
+// Hero section — full-bleed class photo, dark overlay, brand lockup + H1.
+// Figma node 563:3895. The floating <Header> sits on top of this section.
+import { Image } from "astro:assets";
+import heroBg from "../../assets/startseite/hero_bg.jpg";
+import glow from "../../assets/startseite/hero_decorative_glow.svg";
+---
+
+<section class="hero">
+  <div class="hero__media">
+    <Image src={heroBg} alt="" role="presentation" widths={[768, 1440, 2160]} sizes="100vw" />
+    <div class="hero__overlay"></div>
+  </div>
+  <img class="hero__glow" src={glow.src} alt="" aria-hidden="true" />
+
+  <div class="container hero__content">
+    <div class="hero__lockup">
+      <span class="hero__adtv-badge">ADTV</span>
+      <span class="hero__lockup-label">Tanzschule • Amaro</span>
+    </div>
+    <div class="hero__heading-row">
+      <h1 class="hero__heading">Willkommen in unserer Tanzfamilie</h1>
+      <span class="hero__since">est. 2006</span>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    height: 780px;
+    max-height: 100vh;
+    min-height: 560px;
+    overflow: hidden;
+    display: flex;
+    align-items: flex-end;
+  }
+
+  .hero__media {
+    position: absolute;
+    inset: 0;
+  }
+
+  .hero__media :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .hero__overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+  }
+
+  .hero__glow {
+    position: absolute;
+    left: -200px;
+    top: 180px;
+    width: 1000px;
+    height: 900px;
+    pointer-events: none;
+    mix-blend-mode: screen;
+  }
+
+  .hero__content {
+    position: relative;
+    padding-bottom: var(--space-16);
+  }
+
+  .hero__lockup {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-8);
+  }
+
+  .hero__adtv-badge {
+    display: inline-flex;
+    align-items: center;
+    background: var(--color-green-300);
+    color: var(--color-grey-950);
+    font-family: var(--font-family-base);
+    font-weight: var(--font-upper-weight);
+    font-size: 0.625rem;
+    letter-spacing: 0.04em;
+    padding: 3px var(--space-2);
+    border-radius: 12px;
+  }
+
+  .hero__lockup-label {
+    font-family: var(--font-family-base);
+    font-weight: var(--font-upper-weight);
+    font-size: var(--font-upper-100-size);
+    letter-spacing: var(--font-upper-100-tracking);
+    text-transform: uppercase;
+    color: var(--color-grey-50);
+  }
+
+  .hero__heading-row {
+    display: flex;
+    align-items: flex-end;
+    gap: var(--space-6);
+    flex-wrap: wrap;
+  }
+
+  .hero__heading {
+    font-family: var(--font-family-base);
+    font-weight: var(--font-title-weight);
+    font-size: clamp(2.5rem, 8vw, var(--font-title-800-size));
+    line-height: var(--font-title-800-line);
+    color: var(--color-grey-100);
+    max-width: 20ch;
+  }
+
+  .hero__since {
+    font-family: var(--font-family-base);
+    font-weight: var(--font-title-weight);
+    font-size: 1.125rem;
+    letter-spacing: 0.04em;
+    color: var(--color-green-300);
+    padding-bottom: 0.3em;
+  }
+
+  @media (max-width: 640px) {
+    .hero {
+      height: 90vh;
+      min-height: 520px;
+    }
+  }
+</style>

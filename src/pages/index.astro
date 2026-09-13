@@ -1,14 +1,29 @@
 ---
-// Placeholder homepage — real Startseite sections are built next (Phase D of the roadmap).
+// Startseite — assembled from src/components/startseite/*, in the order of
+// the Figma "Home 1440" frame (node 563:3894).
 import BaseLayout from "../layouts/BaseLayout.astro";
+import Hero from "../components/startseite/Hero.astro";
+import ProgramsCarousel from "../components/startseite/ProgramsCarousel.astro";
+import Credentials from "../components/startseite/Credentials.astro";
+import About from "../components/startseite/About.astro";
+import Gallery from "../components/startseite/Gallery.astro";
+import Testimonials from "../components/startseite/Testimonials.astro";
+import Faq from "../components/startseite/Faq.astro";
+import CountdownCta from "../components/startseite/CountdownCta.astro";
 ---
 
 <BaseLayout
-  title="Tanzschule Amaro — Hannover-Badenstedt"
-  description="Tanzschule Amaro in Hannover-Badenstedt: Kindertanz, Hip-Hop, Gesellschaftstanz, Hochzeitstanz und mehr."
+  title="Tanzschule Amaro — Deine Tanzschule in Hannover-Badenstedt"
+  description="Zertifizierte ADTV-Tanzschule in Hannover-Badenstedt: Kindertanz, Hip-Hop, Gesellschaftstanz, Hochzeitstanz und Schülerkurse. Jetzt kostenlose Probestunde sichern."
 >
-  <main class="section container">
-    <h1 class="u-title-400">Tanzschule Amaro</h1>
-    <p class="u-body-200">Projekt-Fundament aufgesetzt. Startseite folgt.</p>
+  <main>
+    <Hero />
+    <ProgramsCarousel />
+    <Credentials />
+    <About />
+    <Gallery />
+    <Testimonials />
+    <Faq />
+    <CountdownCta />
   </main>
 </BaseLayout>
