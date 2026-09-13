@@ -1,0 +1,169 @@
+---
+// Full-screen intro: plays the Amaro logo Lottie once on a black background,
+// then fades away to reveal the page. Shown once per browser session
+// (sessionStorage flag) — repeat page loads within the same session skip
+// straight past it so navigating the site doesn't replay the intro every time.
+//
+// The .lottie file's own timing/scale (see src/assets/lottie/amaro_anim.lottie)
+// is left untouched here — only playback (once, not looped) and layout fit are set.
+---
+
+<div class="preloader" data-preloader aria-hidden="true">
+  <canvas class="preloader__canvas" data-preloader-canvas></canvas>
+</div>
+
+<noscript>
+  <style>
+    /* No JS = no player to reveal the page — never trap no-JS visitors behind it. */
+    .preloader {
+      display: none !important;
+    }
+  </style>
+</noscript>
+
+<script is:inline>
+  // Runs synchronously, right at this point in parsing — before the browser
+  // paints anything below it. If the intro already played earlier in this
+  // browser session, hide the preloader immediately so repeat page loads
+  // never flash the black overlay.
+  (function () {
+    try {
+      if (sessionStorage.getItem("amaro-preloader-seen") === "1") {
+        var el = document.querySelector("[data-preloader]");
+        if (el) el.hidden = true;
+      }
+    } catch (error) {
+      // sessionStorage unavailable (e.g. private mode) — fall back to always showing it.
+    }
+  })();
+</script>
+
+<script>
+  // Plays the intro once, then reveals the page. Waits for the animation to
+  // finish AND the window "load" event (so the reveal doesn't race ahead of
+  // the page's own images/fonts), capped by a hard timeout so a slow network
+  // or a player error can never leave a visitor stuck behind the overlay.
+  //
+  // NOTE: this script must stay a regular (processed) script, not
+  // `define:vars` — define:vars scripts are inlined as-is and skip Astro's
+  // bundling, so the npm import below wouldn't resolve.
+  //
+  // The dotLottie WASM engine is self-hosted (imported from the package
+  // instead of left to its default CDN fetch) so no third-party request
+  // happens on load — see CLAUDE.md §9 (no external requests without
+  // consent) and the "self-host, no CDN" convention already used for fonts.
+  import lottieSrc from "../assets/lottie/amaro_anim.lottie?url";
+  import wasmUrl from "@lottiefiles/dotlottie-web/dotlottie-player.wasm?url";
+
+  const SESSION_KEY = "amaro-preloader-seen";
+  const HARD_TIMEOUT_MS = 8000;
+  const FADE_FALLBACK_MS = 600;
+
+  const root = document.querySelector<HTMLElement>("[data-preloader]");
+  const canvas = document.querySelector<HTMLCanvasElement>("[data-preloader-canvas]");
+
+  function markIntroSeen() {
+    try {
+      sessionStorage.setItem(SESSION_KEY, "1");
+    } catch (error) {
+      // sessionStorage unavailable — worst case the intro plays again next page.
+    }
+  }
+
+  let revealed = false;
+  function reveal() {
+    if (revealed || !root) return;
+    revealed = true;
+    document.documentElement.classList.remove("has-preloader");
+    root.classList.add("preloader--hidden");
+    root.addEventListener(
+      "transitionend",
+      () => {
+        root.hidden = true;
+      },
+      { once: true }
+    );
+    // Fallback in case no transition fires (e.g. prefers-reduced-motion zeroed it out).
+    setTimeout(() => {
+      root.hidden = true;
+    }, FADE_FALLBACK_MS);
+  }
+
+  if (!root || !canvas || root.hidden) {
+    // Already hidden by the sync skip-check above (or markup is missing) — nothing to play.
+    reveal();
+  } else {
+    document.documentElement.classList.add("has-preloader");
+
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const windowLoaded = new Promise<void>((resolve) => {
+      if (document.readyState === "complete") resolve();
+      else window.addEventListener("load", () => resolve(), { once: true });
+    });
+
+    const animationDone: Promise<void> = reducedMotion
+      ? Promise.resolve()
+      : import("@lottiefiles/dotlottie-web")
+          .then(
+            ({ DotLottie }) =>
+              new Promise<void>((resolve) => {
+                DotLottie.setWasmUrl(wasmUrl);
+                const player = new DotLottie({
+                  canvas,
+                  src: lottieSrc,
+                  autoplay: true,
+                  loop: false,
+                  backgroundColor: "transparent",
+                  layout: { fit: "contain", align: [0.5, 0.5] },
+                  renderConfig: { autoResize: true },
+                });
+                player.addEventListener("complete", () => resolve());
+                player.addEventListener("loadError", () => resolve());
+                player.addEventListener("renderError", () => resolve());
+              })
+          )
+          .catch(() => undefined);
+
+    Promise.all([windowLoaded, animationDone]).then(() => {
+      markIntroSeen();
+      reveal();
+    });
+
+    // Absolute safety net, independent of the above — guarantees the page is
+    // never permanently hidden behind the intro.
+    setTimeout(() => {
+      markIntroSeen();
+      reveal();
+    }, HARD_TIMEOUT_MS);
+  }
+</script>
+
+<style>
+  .preloader {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-grey-950);
+    opacity: 1;
+    transition: opacity 0.5s ease;
+  }
+
+  .preloader--hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .preloader__canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  :global(html.has-preloader) {
+    overflow: hidden;
+  }
+</style>
