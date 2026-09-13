@@ -35,10 +35,10 @@ import glow from "../../assets/startseite/hero_decorative_glow.svg";
       <span class="hero__adtv-badge">ADTV</span>
       <span class="hero__lockup-label">Tanzschule • Amaro</span>
     </div>
-    <div class="hero__heading-row">
-      <h1 class="hero__heading">Willkommen in unserer Tanzfamilie</h1>
+    <h1 class="hero__heading">
+      Willkommen in unserer Tanzfamilie
       <span class="hero__since">est. 2006</span>
-    </div>
+    </h1>
   </div>
 </section>
 
@@ -122,8 +122,10 @@ import glow from "../../assets/startseite/hero_decorative_glow.svg";
     font-family: var(--font-family-base);
     font-weight: var(--font-upper-weight);
     font-size: 0.625rem;
+    line-height: 1;
     letter-spacing: 0.04em;
-    padding: 3px var(--space-2);
+    /* 6px/3px — Figma's exact ADTV Badge padding, not on the 4/8px scale */
+    padding: 3px 6px;
     border-radius: 12px;
   }
 
@@ -136,13 +138,6 @@ import glow from "../../assets/startseite/hero_decorative_glow.svg";
     color: var(--color-grey-50);
   }
 
-  .hero__heading-row {
-    display: flex;
-    align-items: flex-end;
-    gap: var(--space-6);
-    flex-wrap: wrap;
-  }
-
   .hero__heading {
     font-family: var(--font-family-base);
     font-weight: var(--font-title-weight);
@@ -152,13 +147,18 @@ import glow from "../../assets/startseite/hero_decorative_glow.svg";
     max-width: 20ch;
   }
 
+  /* Inline in the heading's own text flow (not a flex sibling) so it always
+     sits right next to the last word, wrapping with the text at any width —
+     matches Figma, where it sits baseline-aligned right after "Tanzfamilie". */
   .hero__since {
+    display: inline-block;
+    margin-left: var(--space-4);
     font-family: var(--font-family-base);
     font-weight: var(--font-title-weight);
-    font-size: 1.125rem;
+    font-size: 1rem;
     letter-spacing: 0.04em;
     color: var(--color-green-300);
-    padding-bottom: 0.3em;
+    white-space: nowrap;
   }
 
   @media (max-width: 640px) {
