@@ -104,7 +104,9 @@ import glow from "../../assets/startseite/hero_decorative_glow.svg";
 
   .hero__content {
     position: relative;
-    padding-bottom: var(--space-16);
+    /* Fluid, screen-relative inset instead of a fixed 64px — shrinks on short
+       viewports, never exceeds the previous fixed value on tall ones. */
+    padding-bottom: clamp(2rem, 8vh, var(--space-16));
   }
 
   .hero__lockup {
@@ -112,6 +114,22 @@ import glow from "../../assets/startseite/hero_decorative_glow.svg";
     align-items: center;
     gap: var(--space-3);
     margin-bottom: var(--space-8);
+  }
+
+  /* Both fade + slide up once Preloader.astro removes .has-preloader from
+     <html> (see Header.astro for the matching nav animation) — staggered
+     slightly after the header for a soft cascade, not a simultaneous snap. */
+  :global(html.has-preloader) .hero__lockup,
+  :global(html.has-preloader) .hero__heading {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  .hero__lockup,
+  .hero__heading {
+    transition:
+      opacity 0.7s ease 0.15s,
+      transform 0.7s ease 0.15s;
   }
 
   .hero__adtv-badge {

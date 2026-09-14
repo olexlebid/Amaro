@@ -54,13 +54,18 @@ button {
 
 /* Shared section/container rhythm — see CLAUDE.md §7 markup convention */
 .section {
-  padding-block: var(--space-20);
+  /* Fluid vertical rhythm — scales with viewport height, capped at the
+     previous fixed 80px so nothing shifts on typical desktop viewports. */
+  padding-block: clamp(3rem, 8vh, var(--space-20));
 }
 
 .container {
   max-width: 1312px; /* matches the Home 1440 content width (1440 - 2 * 64px side padding) */
   margin-inline: auto;
-  padding-inline: var(--space-6);
+  /* Fluid, screen-width-relative inset instead of a flat 24px — scales down
+     on narrow screens, capped at the previous fixed value so nothing shifts
+     at the 1440px Figma breakpoint. */
+  padding-inline: clamp(1rem, 4vw, var(--space-6));
 }
 
 @media (prefers-reduced-motion: reduce) {

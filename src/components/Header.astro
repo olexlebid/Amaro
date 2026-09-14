@@ -255,15 +255,27 @@ const uberUnsItems = [
     transform: translateX(-50%);
     width: min(1408px, calc(100% - 32px));
     z-index: 50;
+    transition:
+      opacity 0.7s ease,
+      transform 0.7s ease;
 
     /* State tokens — swapped by .header--scrolled below (Figma Default/Variant2) */
     --header-pill-bg: rgba(255, 255, 255, 0.1);
     --header-pill-border: rgba(255, 255, 255, 0.16);
     --header-text: #eaeaea;
     --header-cta-bg: rgba(255, 255, 255, 0.1);
-    --header-cta-border: transparent;
+    --header-cta-border: rgba(255, 255, 255, 0.16);
     --header-button-bg: rgba(255, 255, 255, 0.9);
     --header-button-text: var(--color-grey-950);
+  }
+
+  /* Starts hidden while the Lottie preloader (BaseLayout) is up, then fades
+     and slides in once Preloader.astro removes this class from <html>. The
+     translateX(-50%) here must stay — it's what centers the pill — only the
+     translateY is what's actually being revealed. */
+  :global(html.has-preloader) .header {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-16px);
   }
 
   .header--scrolled {
@@ -338,9 +350,12 @@ const uberUnsItems = [
     font-size: 1rem;
     color: var(--header-text);
     white-space: nowrap;
+    transition: background-color 0.15s ease;
   }
 
-  .header__item:has([aria-expanded="true"]) .header__link {
+  .header__item:has([aria-expanded="true"]) .header__link,
+  .header__link:hover,
+  .header__link:focus-visible {
     background: var(--color-grey-5p);
   }
 
