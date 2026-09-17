@@ -52,11 +52,15 @@ button {
   cursor: pointer;
 }
 
-/* Shared section/container rhythm — see CLAUDE.md §7 markup convention */
+/* Shared section/container rhythm — see CLAUDE.md §7 markup convention.
+   Default top/bottom padding is 76px each, so two same-background sections
+   read as 152px apart. A section that borders a full-bleed section with no
+   padding of its own (e.g. Hero) instead sets --space-38 (152px) on that one
+   edge, since it's carrying the whole gap alone — see Credentials.astro. */
 .section {
   /* Fluid vertical rhythm — scales with viewport height, capped at the
-     previous fixed 80px so nothing shifts on typical desktop viewports. */
-  padding-block: clamp(3rem, 8vh, var(--space-20));
+     76px resting value so nothing shifts on typical desktop viewports. */
+  padding-block: clamp(3rem, 8vh, var(--space-19));
 }
 
 .container {

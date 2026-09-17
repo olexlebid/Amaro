@@ -1,59 +1,79 @@
 ---
-// Site header: floating pill nav with two mega-menu dropdowns (Tanzkurse, Über
-// uns), a scroll-triggered color swap (Figma "Default" vs "Variant2"), and a
-// mobile hamburger panel. Figma node refs: header 466:966, dropdowns 564:4982.
+// Site header: floating nav that fills the page container edge-to-edge while
+// transparent, then shrinks into a centered, blurred dark pill once the page
+// is scrolled. Two mega-menu dropdowns (Tanzkurse, Über uns) and a mobile
+// hamburger panel. Figma node refs: navbar unscrolled 579:300, navbar
+// scrolled 579:326.
 //
 // NOTE: every internal href below is a placeholder ("#") — the target pages
-// (Tanzangebot sub-pages, Stundenplan, Aktuelles, Kontakt, Über uns pages...)
-// don't exist yet. Swap these once each page is built.
+// (Tanzangebot sub-pages, Stundenplan, Aktuelles, Kontakt, Über uns pages,
+// Nimbus login...) don't exist yet. Swap these once each page is built.
 //
-// The 5 short blurbs in the Tanzkurse dropdown and the 3 bullets in its promo
-// panel were SaaS-template placeholder text in Figma ("Full-suite app for
-// time, project and team management" etc.) — drafted here in German instead,
-// to be reviewed against the real Figma copy once it's updated there.
+// Copy, icon assignments and the two-column split below all come straight
+// from Figma node 564:4982 (dropdown copy/type) and 516:430 (icon glyphs) —
+// the promo panel's 3 bullets are still SaaS-template placeholder text
+// ("Full-suite app for time, project and team management" etc.), unchanged
+// since that part of the design hasn't been updated with real copy yet.
 import Button from "./Button.astro";
 import ArrowIcon from "./icons/ArrowIcon.astro";
+import DropdownIcon from "./icons/DropdownIcon.astro";
 
-const tanzkurseItems = [
+// Two independent column stacks (not a strict row-major grid) — matches
+// Figma, where col 1 holds the two tall cards (with tag chips) and col 2
+// holds three shorter ones, stacked with no shared row heights between columns.
+const tanzkurseCol1 = [
   {
     title: "Kindertanz & Hip-Hop",
-    description: "Tanzspaß für Kinder und Jugendliche von 3 bis 18 Jahren",
+    description:
+      "Von den ersten Tanzschritten mit 3 Jahren bis zur eigenen Streetdance-Crew: für jedes Alter der passende Rhythmus.",
     tags: ["Mini Kids (3+)", "Kids (6+)", "Junioren (12+)", "Adults (16+)", "Classic"],
+    icon: "headphones",
   },
   {
     title: "Masterclass",
-    description: "Intensivtraining und Wettkampfvorbereitung für unsere Teams",
+    description: "Intensivtraining mit Gasttrainern, für alle mit Turnierambitionen.",
+    tags: ["WazzUp Kids", "SunnyStars", "The Icons", "Drilla"],
+    icon: "award",
   },
-  {
-    title: "Gesellschaftstanz",
-    description: "Standard und Latein für Paare jeden Alters und Levels",
-  },
+] as const;
+
+const tanzkurseCol2 = [
   {
     title: "Hochzeitstanz",
-    description: "Dein perfekter erster Tanz — in nur wenigen Stunden",
+    description: "Eure erste gemeinsame Choreografie, in wenigen Wochen einstudiert, ganz ohne Lampenfieber.",
+    icon: "heart",
   },
   {
     title: "Schülerkurse",
-    description: "Tanzkurse und Bälle für Schülerinnen und Schüler",
+    description: "Grundkurs, Bronzeball und der erste Tanz vor dem Abiball.",
+    icon: "book",
   },
-];
+  {
+    title: "Gesellschaftstanz",
+    description: "Standard, Latein und ein fester Abend nur für euch beide in der Woche.",
+    icon: "users",
+  },
+] as const;
 
 const uberUnsItems = [
-  "Amaro Team",
-  "FAQs",
-  "Mediathek",
-  "Spotify Playlists",
-  "Feiern bei uns",
-  "Amaro Shop",
-];
+  { label: "Amaro Team", icon: "smile" },
+  { label: "FAQs", icon: "info" },
+  { label: "Mediathek", icon: "film" },
+  { label: "Spotify Playlists", icon: "music" },
+  { label: "Feiern bei uns", icon: "gift" },
+  { label: "Amaro Shop", icon: "package" },
+] as const;
 ---
 
 <header class="header" data-header>
-  <div class="header__bar">
-    <nav class="header__navbar" aria-label="Hauptnavigation">
+  <!-- Mobile-only dimmed backdrop behind the open menu panel — painted
+       before .header__container so it stacks underneath it. -->
+  <div class="header__scrim" data-mobile-scrim hidden></div>
+
+  <div class="header__container container">
+    <nav class="header__navbar" data-navbar aria-label="Hauptnavigation">
       <a class="header__logo" href="/" aria-label="Tanzschule Amaro — Startseite">
-        <img class="header__logo-img header__logo-img--light" src="/logo/amaro-logo-white.svg" alt="" width="86" height="40" />
-        <img class="header__logo-img header__logo-img--dark" src="/logo/amaro-logo-dark.svg" alt="" width="86" height="40" />
+        <img class="header__logo-img" src="/logo/amaro-logo-white.svg" alt="" width="86" height="40" />
       </a>
 
       <ul class="header__links">
@@ -72,7 +92,6 @@ const uberUnsItems = [
           </button>
         </li>
         <li class="header__item"><a class="header__link" href="#">Stundenplan</a></li>
-        <li class="header__item"><a class="header__link" href="#">Aktuelles</a></li>
         <li class="header__item">
           <button
             class="header__link"
@@ -89,123 +108,183 @@ const uberUnsItems = [
         </li>
         <li class="header__item"><a class="header__link" href="#">Kontakt</a></li>
       </ul>
+
+      <div class="header__cta">
+        <a class="header__login" href="#">Login</a>
+        <a class="header__cta-button" href="#"><!-- TODO: Nimbus Cloud -->Probestunde</a>
+      </div>
+
+      <!-- Tanzkurse mega-menu -->
+      <div class="header__dropdown" id="dropdown-tanzkurse" data-dropdown-panel="tanzkurse" hidden>
+        <div class="header__dropdown-inner">
+          <p class="header__dropdown-title header__dropdown-title--eyebrow">Unsere Tanzangebot</p>
+          <div class="tanzkurse-grid">
+            <div class="tanzkurse-col">
+              {tanzkurseCol1.map((item) => (
+                <a class="tanzkurse-card" href="#">
+                  <div class="tanzkurse-card__head">
+                    <span class="tanzkurse-card__badge" aria-hidden="true"><DropdownIcon name={item.icon} /></span>
+                    <span class="tanzkurse-card__title">{item.title}</span>
+                    <span class="tanzkurse-card__arrow"><ArrowIcon size={16} /></span>
+                  </div>
+                  <p class="tanzkurse-card__desc">{item.description}</p>
+                  {item.tags && (
+                    <ul class="tanzkurse-card__tags">
+                      {item.tags.map((tag) => (
+                        <li class="tanzkurse-card__tag">{tag}</li>
+                      ))}
+                    </ul>
+                  )}
+                </a>
+              ))}
+            </div>
+            <div class="tanzkurse-col">
+              {tanzkurseCol2.map((item) => (
+                <a class="tanzkurse-card" href="#">
+                  <div class="tanzkurse-card__head">
+                    <span class="tanzkurse-card__badge" aria-hidden="true"><DropdownIcon name={item.icon} /></span>
+                    <span class="tanzkurse-card__title">{item.title}</span>
+                    <span class="tanzkurse-card__arrow"><ArrowIcon size={16} /></span>
+                  </div>
+                  <p class="tanzkurse-card__desc">{item.description}</p>
+                </a>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Über uns dropdown -->
+      <div class="header__dropdown" id="dropdown-ueber-uns" data-dropdown-panel="ueber-uns" hidden>
+        <div class="header__dropdown-inner">
+          <p class="header__dropdown-title">Über uns</p>
+          <ul class="ueberuns-grid">
+            {uberUnsItems.map((item) => (
+              <li>
+                <a class="ueberuns-item" href="#">
+                  <span class="ueberuns-item__badge" aria-hidden="true"><DropdownIcon name={item.icon} /></span>
+                  <span class="ueberuns-item__label">{item.label}</span>
+                  <ArrowIcon size={20} class="ueberuns-item__arrow" />
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      <!-- Mobile-only: a flex child of the navbar itself (not a container
+           sibling) so it shares the exact same pill background as the logo,
+           below ~960px, instead of needing its own separate one. -->
+      <button
+        class="header__burger"
+        type="button"
+        aria-label="Menü öffnen"
+        aria-expanded="false"
+        aria-controls="mobile-panel"
+        data-mobile-toggle
+      >
+        <span class="header__burger-bar"></span>
+        <span class="header__burger-bar"></span>
+        <span class="header__burger-bar"></span>
+      </button>
     </nav>
 
-    <div class="header__cta">
-      <a class="header__member-link" href="#">Mitgliedportal</a>
-      <a class="header__cta-button" href="#"><!-- TODO: Nimbus Cloud -->Probestunde</a>
-    </div>
-
-    <button
-      class="header__burger"
-      type="button"
-      aria-label="Menü öffnen"
-      aria-expanded="false"
-      aria-controls="mobile-panel"
-      data-mobile-toggle
-    >
-      <span class="header__burger-bar"></span>
-      <span class="header__burger-bar"></span>
-      <span class="header__burger-bar"></span>
-    </button>
-  </div>
-
-  <!-- Tanzkurse mega-menu -->
-  <div class="header__dropdown" id="dropdown-tanzkurse" data-dropdown-panel="tanzkurse" hidden>
-    <div class="header__dropdown-inner">
-      <p class="header__dropdown-title">Unsere Tanzangebot</p>
-      <div class="tanzkurse-grid">
-        {tanzkurseItems.map((item) => (
-          <a class="tanzkurse-card" href="#">
-            <div class="tanzkurse-card__head">
-              <span class="tanzkurse-card__badge" aria-hidden="true"></span>
-              <span class="tanzkurse-card__title">{item.title}</span>
-              <span class="tanzkurse-card__arrow"><ArrowIcon size={16} /></span>
-            </div>
-            <p class="tanzkurse-card__desc">{item.description}</p>
-            {item.tags && (
-              <ul class="tanzkurse-card__tags">
-                {item.tags.map((tag) => (
-                  <li class="tanzkurse-card__tag">{tag}</li>
-                ))}
-              </ul>
-            )}
-          </a>
-        ))}
-      </div>
-      <div class="tanzkurse-promo">
-        <p class="tanzkurse-promo__title">Fünf, sechs, sieben, acht.</p>
-        <ul class="tanzkurse-promo__list">
-          <li>Kostenlose Probestunde in jedem Kurs</li>
-          <li>Zertifizierte ADTV-Trainer:innen</li>
-          <li>Familiäre Atmosphäre in Hannover-Badenstedt</li>
-        </ul>
-        <Button variant="white" icon="none" href="#" class="tanzkurse-promo__button">Probestunde anfragen</Button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Über uns dropdown -->
-  <div class="header__dropdown header__dropdown--narrow" id="dropdown-ueber-uns" data-dropdown-panel="ueber-uns" hidden>
-    <div class="header__dropdown-inner">
-      <p class="header__dropdown-title">Über uns</p>
-      <ul class="ueberuns-grid">
-        {uberUnsItems.map((label) => (
-          <li>
-            <a class="ueberuns-item" href="#">
-              <span class="ueberuns-item__badge" aria-hidden="true"></span>
-              <span class="ueberuns-item__label">{label}</span>
-              <ArrowIcon size={20} class="ueberuns-item__arrow" />
-            </a>
-          </li>
-        ))}
+    <!-- Mobile menu panel — a flex child of header__container so it inherits
+         the same container inset as the navbar row above it, wrapping onto
+         its own line via flex-basis: 100% below. -->
+    <div class="header__mobile-panel" id="mobile-panel" data-mobile-panel hidden>
+      <ul class="mobile-panel__links">
+        <li>
+          <details class="mobile-panel__group">
+            <summary>
+              Tanzkurse
+              <svg class="mobile-panel__chevron" width="12" height="7" viewBox="0 0 10 6" fill="none" aria-hidden="true">
+                <path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </summary>
+            <ul>
+              {[...tanzkurseCol1, ...tanzkurseCol2].map((item) => (
+                <li><a href="#">{item.title}</a></li>
+              ))}
+            </ul>
+          </details>
+        </li>
+        <li><a href="#">Stundenplan</a></li>
+        <li>
+          <details class="mobile-panel__group">
+            <summary>
+              Über uns
+              <svg class="mobile-panel__chevron" width="12" height="7" viewBox="0 0 10 6" fill="none" aria-hidden="true">
+                <path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </summary>
+            <ul>
+              {uberUnsItems.map((item) => (
+                <li><a href="#">{item.label}</a></li>
+              ))}
+            </ul>
+          </details>
+        </li>
+        <li><a href="#">Kontakt</a></li>
+        <li><a href="#">Login</a></li>
       </ul>
+      <Button variant="primary" icon="none" href="#" class="mobile-panel__cta">Probestunde buchen</Button>
     </div>
-  </div>
-
-  <!-- Mobile menu panel -->
-  <div class="header__mobile-panel" id="mobile-panel" data-mobile-panel hidden>
-    <ul class="mobile-panel__links">
-      <li>
-        <details class="mobile-panel__group">
-          <summary>Tanzkurse</summary>
-          <ul>
-            {tanzkurseItems.map((item) => (
-              <li><a href="#">{item.title}</a></li>
-            ))}
-          </ul>
-        </details>
-      </li>
-      <li><a href="#">Stundenplan</a></li>
-      <li><a href="#">Aktuelles</a></li>
-      <li>
-        <details class="mobile-panel__group">
-          <summary>Über uns</summary>
-          <ul>
-            {uberUnsItems.map((label) => (
-              <li><a href="#">{label}</a></li>
-            ))}
-          </ul>
-        </details>
-      </li>
-      <li><a href="#">Kontakt</a></li>
-      <li><a href="#">Mitgliedportal</a></li>
-    </ul>
-    <Button variant="primary" icon="none" href="#" class="mobile-panel__cta">Probestunde buchen</Button>
   </div>
 </header>
 
 <script>
-  // Toggle the header's "scrolled" state (Figma Header "Default" vs "Variant2")
-  // and wire up the dropdown / mobile-menu interactions with keyboard support.
+  // Toggle the header's "scrolled" state (Figma navbar 579:300 "unscrolled" vs
+  // 579:326 "scrolled") and wire up the dropdown / mobile-menu interactions
+  // with keyboard support.
   const header = document.querySelector<HTMLElement>("[data-header]");
+  const navbar = document.querySelector<HTMLElement>("[data-navbar]");
+
+  // Scroll distance after which the navbar collapses into the dark pill.
+  const SCROLL_THRESHOLD = 100;
+
+  // Horizontal padding of the *scrolled* pill only (space-6 + space-2 =
+  // 24px + 8px — see ".header--scrolled .header__navbar" below). The
+  // unscrolled navbar has no horizontal padding (it sits flush with the
+  // container edges instead), so this can't be read off the navbar's
+  // current computed style — it has to match the CSS value directly.
+  const SCROLLED_PADDING_X = 32;
+
+  // The navbar always spans the full container width while transparent
+  // (unscrolled). Once scrolled, it shrinks to hug its own content instead —
+  // but keeps the navbar's own `gap` as a minimum breathing room between the
+  // logo / links / CTA groups (matching Figma 579:326, which still has ~64px
+  // between them even in the collapsed pill). To animate that shrink smoothly
+  // we measure the content's natural width up front and drive the collapse
+  // via a CSS custom property, rather than transitioning to/from an
+  // unmeasurable "auto" width.
+  function updateCollapsedWidth() {
+    if (!navbar) return;
+    const measured = navbar.querySelectorAll<HTMLElement>(
+      ":scope > .header__logo, :scope > .header__links, :scope > .header__cta",
+    );
+    let contentWidth = 0;
+    measured.forEach((el) => {
+      contentWidth += el.getBoundingClientRect().width;
+    });
+    const gap = parseFloat(getComputedStyle(navbar).columnGap) || 0;
+    const gapsCount = Math.max(measured.length - 1, 0);
+    navbar.style.setProperty(
+      "--navbar-collapsed-width",
+      `${contentWidth + SCROLLED_PADDING_X + gap * gapsCount}px`,
+    );
+  }
 
   const onScroll = () => {
     if (!header) return;
-    header.classList.toggle("header--scrolled", window.scrollY > 8);
+    header.classList.toggle("header--scrolled", window.scrollY > SCROLL_THRESHOLD);
   };
+
+  updateCollapsedWidth();
   onScroll();
   window.addEventListener("scroll", onScroll, { passive: true });
+  window.addEventListener("resize", updateCollapsedWidth);
+  document.fonts?.ready?.then(updateCollapsedWidth);
 
   const triggers = document.querySelectorAll<HTMLButtonElement>("[data-dropdown-trigger]");
   const panels = document.querySelectorAll<HTMLElement>("[data-dropdown-panel]");
@@ -239,70 +318,137 @@ const uberUnsItems = [
   // Mobile hamburger toggle
   const mobileToggle = document.querySelector<HTMLButtonElement>("[data-mobile-toggle]");
   const mobilePanel = document.querySelector<HTMLElement>("[data-mobile-panel]");
+  const mobileScrim = document.querySelector<HTMLElement>("[data-mobile-scrim]");
+
+  function closeMobileMenu() {
+    mobileToggle?.setAttribute("aria-expanded", "false");
+    if (mobilePanel) mobilePanel.hidden = true;
+    if (mobileScrim) mobileScrim.hidden = true;
+    document.documentElement.classList.remove("has-mobile-menu");
+  }
 
   mobileToggle?.addEventListener("click", () => {
     const isOpen = mobileToggle.getAttribute("aria-expanded") === "true";
-    mobileToggle.setAttribute("aria-expanded", String(!isOpen));
-    if (mobilePanel) mobilePanel.hidden = isOpen;
+    if (isOpen) {
+      closeMobileMenu();
+      return;
+    }
+    mobileToggle.setAttribute("aria-expanded", "true");
+    if (mobilePanel) mobilePanel.hidden = false;
+    if (mobileScrim) mobileScrim.hidden = false;
+    // Block the page behind from scrolling while the panel is open — the
+    // panel itself still scrolls internally (see its own max-height/overflow).
+    document.documentElement.classList.add("has-mobile-menu");
   });
+
+  // Tapping the dimmed backdrop closes the menu, same as tapping the burger again.
+  mobileScrim?.addEventListener("click", closeMobileMenu);
 </script>
 
 <style>
   .header {
     position: fixed;
-    top: var(--space-4);
-    left: 50%;
-    transform: translateX(-50%);
-    width: min(1408px, calc(100% - 32px));
+    top: var(--space-6);
+    left: 0;
+    right: 0;
     z-index: 50;
+    /* The shrunk (scrolled) pill no longer spans the full row — let clicks
+       pass through the empty space on either side of it to the page content
+       underneath. Re-enabled below on the actual interactive pieces. */
+    pointer-events: none;
     transition:
       opacity 0.7s ease,
       transform 0.7s ease;
 
-    /* State tokens — swapped by .header--scrolled below (Figma Default/Variant2) */
-    --header-pill-bg: rgba(255, 255, 255, 0.1);
-    --header-pill-border: rgba(255, 255, 255, 0.16);
-    --header-text: #eaeaea;
-    --header-cta-bg: rgba(255, 255, 255, 0.1);
-    --header-cta-border: rgba(255, 255, 255, 0.16);
-    --header-button-bg: rgba(255, 255, 255, 0.9);
-    --header-button-text: var(--color-grey-950);
+    /* State tokens — swapped by .header--scrolled below (Figma navbar 579:300 vs 579:326) */
+    --header-text: var(--color-grey-200);
+    --header-cta-gap: var(--space-3);
   }
 
   /* Starts hidden while the Lottie preloader (BaseLayout) is up, then fades
-     and slides in once Preloader.astro removes this class from <html>. The
-     translateX(-50%) here must stay — it's what centers the pill — only the
-     translateY is what's actually being revealed. */
+     and slides in once Preloader.astro removes this class from <html>. */
   :global(html.has-preloader) .header {
     opacity: 0;
-    transform: translateX(-50%) translateY(-16px);
+    transform: translateY(-16px);
+  }
+
+  /* Set on <html> by the mobile toggle script below while the panel is
+     open, so the page behind it can't scroll. */
+  :global(html.has-mobile-menu) {
+    overflow: hidden;
+  }
+
+  /* Dimmed backdrop behind the open mobile panel — toggled via [hidden] by
+     the same script, right alongside the panel itself. */
+  .header__scrim {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    pointer-events: auto;
   }
 
   .header--scrolled {
-    --header-pill-bg: rgba(255, 255, 255, 0.9);
-    --header-pill-border: var(--color-grey-10p);
-    --header-text: #1c1c1c;
-    --header-cta-bg: rgba(255, 255, 255, 0.96);
-    --header-cta-border: #cecdca;
-    --header-button-bg: #1c1c1c;
-    --header-button-text: var(--color-grey-50);
+    --header-text: var(--color-grey-100);
+    --header-cta-gap: var(--space-2);
   }
 
-  .header__bar {
+  .header__container {
+    /* Positioned (with a higher z-index than .header__scrim) so it reliably
+       stacks above that scrim — a fixed-position sibling would otherwise
+       paint on top of this regardless of DOM order, since this itself
+       wasn't a positioned element before. */
+    position: relative;
+    z-index: 1;
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
     gap: var(--space-4);
+    /* .container's fluid clamp() gutter doesn't match the Hero title's inset
+       (see Hero.astro .hero__content) — both need the same fixed Figma edge
+       so the logo/CTA line up with the title below. Override the same way
+       Hero does: drop the fluid centered max-width, use a flat inset. */
+    width: 100%;
+    max-width: none;
+    margin-inline: 0;
+    padding-inline: var(--space-6); /* 24px mobile fallback */
+  }
+
+  @media (min-width: 640px) {
+    .header__container {
+      padding-inline: var(--space-16); /* 64px — exact Figma inset, matches Hero */
+    }
   }
 
   .header__navbar {
+    position: relative;
     display: flex;
     align-items: center;
-    gap: var(--space-6);
-    background: var(--header-pill-bg);
-    border: 1px solid var(--header-pill-border);
+    justify-content: space-between;
+    gap: var(--space-16);
+    width: 100%;
+    background: transparent;
     border-radius: 32px;
-    padding: var(--space-2) var(--space-6);
+    /* Unscrolled: no horizontal padding, so the logo/CTA sit flush with the
+       container edges — the same edges the page content (e.g. the Hero
+       title) aligns to. The 24px/8px pill padding only applies once
+       scrolled, where it gives the visible dark pill room to breathe. */
+    padding: var(--space-2) 0;
+    pointer-events: auto;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    transition:
+      width 0.4s ease,
+      padding-inline 0.4s ease,
+      background-color 0.3s ease,
+      -webkit-backdrop-filter 0.3s ease,
+      backdrop-filter 0.3s ease;
+  }
+
+  .header--scrolled .header__navbar {
+    width: var(--navbar-collapsed-width, auto);
+    padding: var(--space-2) var(--space-2) var(--space-2) var(--space-6);
+    background: rgba(0, 0, 0, 0.6);
     -webkit-backdrop-filter: blur(20px);
     backdrop-filter: blur(20px);
   }
@@ -319,18 +465,6 @@ const uberUnsItems = [
     height: 40px;
   }
 
-  .header__logo-img--dark {
-    display: none;
-  }
-
-  .header--scrolled .header__logo-img--light {
-    display: none;
-  }
-
-  .header--scrolled .header__logo-img--dark {
-    display: block;
-  }
-
   .header__links {
     display: flex;
     align-items: center;
@@ -343,7 +477,7 @@ const uberUnsItems = [
     display: inline-flex;
     align-items: center;
     gap: var(--space-2);
-    padding: var(--space-3) var(--space-4);
+    padding: var(--space-3);
     border-radius: 24px;
     font-family: var(--font-family-base);
     font-weight: 500;
@@ -356,7 +490,7 @@ const uberUnsItems = [
   .header__item:has([aria-expanded="true"]) .header__link,
   .header__link:hover,
   .header__link:focus-visible {
-    background: var(--color-grey-5p);
+    background: rgba(255, 255, 255, 0.1);
   }
 
   .header__chevron {
@@ -366,37 +500,34 @@ const uberUnsItems = [
   .header__cta {
     display: flex;
     align-items: center;
-    gap: var(--space-6);
-    background: var(--header-cta-bg);
-    border: 1px solid var(--header-cta-border);
-    border-radius: 32px;
-    padding: var(--space-2) var(--space-2) var(--space-2) var(--space-6);
+    gap: var(--header-cta-gap);
     flex-shrink: 0;
-    -webkit-backdrop-filter: blur(20px);
-    backdrop-filter: blur(20px);
   }
 
-  .header__member-link {
-    font-family: var(--font-family-base);
-    font-weight: 500;
-    font-size: 1rem;
-    color: var(--header-text);
-    white-space: nowrap;
-  }
-
+  .header__login,
   .header__cta-button {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     height: 40px;
     padding-inline: var(--space-4);
     border-radius: 32px;
-    background: var(--header-button-bg);
-    color: var(--header-button-text);
     font-family: var(--font-family-base);
-    font-weight: 700;
+    font-weight: 600;
     font-size: 1rem;
     letter-spacing: 0.02em;
     white-space: nowrap;
+  }
+
+  .header__login {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--color-grey-100);
+  }
+
+  .header__cta-button {
+    background: var(--color-grey-100);
+    color: var(--color-grey-950);
   }
 
   .header__burger {
@@ -407,8 +538,10 @@ const uberUnsItems = [
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: var(--header-pill-bg);
-    border: 1px solid var(--header-pill-border);
+    flex-shrink: 0;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    pointer-events: auto;
     -webkit-backdrop-filter: blur(20px);
     backdrop-filter: blur(20px);
   }
@@ -418,45 +551,85 @@ const uberUnsItems = [
     width: 18px;
     height: 1.6px;
     margin-inline: auto;
-    background: var(--header-text);
+    background: var(--color-grey-100);
+    transition:
+      transform 0.25s ease,
+      opacity 0.25s ease;
+  }
+
+  /* Hamburger → X, driven by the button's own aria-expanded (already toggled
+     by the script below) — no extra class needed. The two outer bars slide
+     to the middle bar's position (half the 4px gap + its own height) and
+     rotate into an X; the middle bar just fades out. */
+  .header__burger[aria-expanded="true"] .header__burger-bar:nth-child(1) {
+    transform: translateY(5.6px) rotate(45deg);
+  }
+
+  .header__burger[aria-expanded="true"] .header__burger-bar:nth-child(2) {
+    opacity: 0;
+  }
+
+  .header__burger[aria-expanded="true"] .header__burger-bar:nth-child(3) {
+    transform: translateY(-5.6px) rotate(-45deg);
   }
 
   /* --- Dropdown panels --- */
+  /* Centered under the navbar (not edge-to-edge) and capped at 900px, so
+     both panels line up the same way regardless of the navbar's own current
+     width (full container when unscrolled vs. the shrunk pill when scrolled). */
   .header__dropdown {
     position: absolute;
     top: calc(100% + var(--space-2));
-    left: 0;
-    right: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    transform-origin: top center;
+    width: 100%;
+    max-width: 900px;
     background: var(--color-grey-50);
     border: 1px solid var(--color-grey-300);
     border-radius: 16px;
     box-shadow: 0 24px 48px var(--color-grey-20p);
   }
 
-  .header__dropdown--narrow {
-    left: 0;
-    right: auto;
-    min-width: 620px;
-  }
-
   .header__dropdown-inner {
     padding: var(--space-8);
   }
 
+  /* Plain heading style — used as-is by the Über uns dropdown ("Über uns"). */
   .header__dropdown-title {
     font-family: var(--font-family-base);
     font-weight: 500;
     font-size: 1.125rem;
-    color: var(--color-grey-900);
+    letter-spacing: 0.01em;
+    color: var(--color-grey-800);
     margin-bottom: var(--space-4);
   }
 
-  /* Tanzkurse grid */
+  /* Small-caps eyebrow variant — used by the Tanzkurse dropdown ("Unsere
+     Tanzangebot"), same upper-100 tokens as the hero's ADTV badge/label. */
+  .header__dropdown-title--eyebrow {
+    font-weight: var(--font-upper-weight);
+    font-size: var(--font-upper-100-size);
+    letter-spacing: var(--font-upper-100-tracking);
+    text-transform: uppercase;
+    color: var(--color-grey-500);
+  }
+
+  /* Tanzkurse grid — two independent column stacks, not a row-major grid
+     (see the tanzkurseCol1/2 split above: col 1's cards are taller, and
+     Figma keeps col 2's cards stacked tight rather than row-matched). */
   .tanzkurse-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    display: flex;
     gap: var(--space-2);
     margin-bottom: var(--space-6);
+  }
+
+  .tanzkurse-col {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: var(--space-2);
+    min-width: 0;
   }
 
   .tanzkurse-card {
@@ -481,10 +654,14 @@ const uberUnsItems = [
   }
 
   .tanzkurse-card__badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 32px;
     height: 32px;
     border-radius: 6px;
     background: var(--color-green-200);
+    color: var(--color-green-600);
     flex-shrink: 0;
   }
 
@@ -492,7 +669,8 @@ const uberUnsItems = [
     flex: 1;
     font-family: var(--font-family-base);
     font-weight: 500;
-    font-size: 1rem;
+    font-size: 1.125rem;
+    line-height: 1.2;
     color: var(--color-grey-800);
   }
 
@@ -514,6 +692,7 @@ const uberUnsItems = [
     font-weight: 400;
     font-size: 0.875rem;
     line-height: 1.5em;
+    letter-spacing: 0.01em;
     color: var(--color-grey-600);
   }
 
@@ -537,62 +716,6 @@ const uberUnsItems = [
     padding: 5px var(--space-2);
   }
 
-  /* Promo panel */
-  .tanzkurse-promo {
-    position: relative;
-    overflow: hidden;
-    background: var(--color-grey-900);
-    border-radius: 8px;
-    padding: var(--space-8);
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-    align-items: flex-start;
-  }
-
-  .tanzkurse-promo::before {
-    content: "";
-    position: absolute;
-    inset: -40% -10% auto auto;
-    width: 60%;
-    height: 140%;
-    background: var(--color-orange-500);
-    opacity: 0.3;
-    filter: blur(60px);
-    pointer-events: none;
-  }
-
-  .tanzkurse-promo__title {
-    position: relative;
-    font-family: var(--font-family-base);
-    font-weight: 700;
-    font-size: 2.125rem;
-    line-height: 1em;
-    color: var(--color-grey-100);
-  }
-
-  .tanzkurse-promo__list {
-    position: relative;
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-1);
-    font-family: var(--font-family-base);
-    font-weight: 400;
-    font-size: 1rem;
-    color: var(--color-grey-100);
-  }
-
-  .tanzkurse-promo__list li::before {
-    content: "✓ ";
-  }
-
-  .tanzkurse-promo__button {
-    position: relative;
-  }
-
   /* Über uns list */
   .ueberuns-grid {
     display: grid;
@@ -612,10 +735,14 @@ const uberUnsItems = [
   }
 
   .ueberuns-item__badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 32px;
     height: 32px;
     border-radius: 6px;
     background: var(--color-green-200);
+    color: var(--color-green-600);
     flex-shrink: 0;
   }
 
@@ -624,6 +751,7 @@ const uberUnsItems = [
     font-family: var(--font-family-base);
     font-weight: 500;
     font-size: 1rem;
+    letter-spacing: 0.01em;
     color: var(--color-grey-900);
   }
 
@@ -638,11 +766,20 @@ const uberUnsItems = [
 
   /* --- Mobile panel --- */
   .header__mobile-panel {
+    flex-basis: 100%;
     margin-top: var(--space-2);
     background: var(--color-grey-50);
     border: 1px solid var(--color-grey-300);
     border-radius: 16px;
     padding: var(--space-6);
+    pointer-events: auto;
+    /* .header is position: fixed, so it never contributes to page height —
+       without its own scroll, content taller than the viewport (e.g. both
+       dropdown groups expanded at once) would be unreachable. Roughly the
+       viewport minus the navbar row above it and some breathing margin. */
+    max-height: calc(100vh - 120px);
+    max-height: calc(100dvh - 120px);
+    overflow-y: auto;
   }
 
   .mobile-panel__links {
@@ -663,6 +800,30 @@ const uberUnsItems = [
     font-size: 1.125rem;
     color: var(--color-grey-900);
     cursor: pointer;
+  }
+
+  .mobile-panel__group summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    list-style: none;
+  }
+
+  /* Suppress the browser's own disclosure triangle — .mobile-panel__chevron
+     below is the only indicator. */
+  .mobile-panel__group summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .mobile-panel__chevron {
+    flex-shrink: 0;
+    color: var(--color-grey-500);
+    transition: transform 0.2s ease;
+  }
+
+  .mobile-panel__group[open] > summary .mobile-panel__chevron {
+    transform: rotate(180deg);
   }
 
   .mobile-panel__group ul {
@@ -687,18 +848,36 @@ const uberUnsItems = [
 
   /* --- Responsive: collapse to hamburger below ~960px --- */
   @media (max-width: 960px) {
-    .header__navbar .header__links,
+    .header__container {
+      justify-content: space-between;
+      /* The container's own row-gap would otherwise stack with
+         .header__mobile-panel's margin-top below, doubling the gap between
+         the navbar pill and the opened panel. Panel's margin-top alone
+         (8px) is the intended spacing. */
+      gap: 0;
+    }
+
+    /* Logo + burger share one pill (burger lives inside .header__navbar —
+       see the markup above), but it follows the exact same transparent
+       -until-scrolled behavior as the desktop navbar above; nothing to
+       override here beyond sizing. */
+    .header__navbar {
+      flex: 1;
+      width: auto;
+    }
+
+    .header__links,
     .header__cta {
       display: none;
     }
 
-    .header__navbar {
-      flex: 1;
-      justify-content: space-between;
-    }
-
     .header__burger {
       display: flex;
+      /* Now sits inside .header__navbar's own pill — no background of its own. */
+      background: transparent;
+      border-color: transparent;
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
     }
 
     .header__dropdown {
@@ -708,18 +887,23 @@ const uberUnsItems = [
 
   @media (prefers-reduced-motion: no-preference) {
     .header__dropdown {
-      animation: dropdown-in 0.15s ease-out;
+      animation: dropdown-in 0.22s cubic-bezier(0.16, 1, 0.3, 1);
     }
   }
 
+  /* Keeps the base rule's translateX(-50%) in every frame — a keyframe that
+     only set translateY/scale would replace (not add to) that centering
+     transform for the animation's duration, flashing the panel uncentered
+     (right-shifted) for a moment before it snapped back once the animation
+     finished. */
   @keyframes dropdown-in {
     from {
       opacity: 0;
-      transform: translateY(-4px);
+      transform: translateX(-50%) translateY(-8px) scale(0.97);
     }
     to {
       opacity: 1;
-      transform: translateY(0);
+      transform: translateX(-50%) translateY(0) scale(1);
     }
   }
 </style>

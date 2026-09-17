@@ -87,9 +87,14 @@
   --space-2: 0.5rem;   /* 8px */
   --space-3: 0.75rem;  /* 12px */
   --space-4: 1rem;     /* 16px */
+  --space-5: 1.25rem;  /* 20px */
   --space-6: 1.5rem;   /* 24px */
   --space-8: 2rem;     /* 32px */
   --space-10: 2.5rem;  /* 40px */
   --space-16: 4rem;    /* 64px */
+  --space-19: 4.75rem; /* 76px — default section-to-section rhythm, see .section in base.css */
   --space-20: 5rem;    /* 80px */
+  --space-38: 9.5rem;  /* 152px — section rhythm doubled, for the edge next to a
+                           full-bleed section with no padding of its own to
+                           split the gap with (e.g. Credentials after Hero) */
 }

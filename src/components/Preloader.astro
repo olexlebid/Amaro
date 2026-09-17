@@ -126,53 +126,70 @@
     ctx.restore();
   }
 
-  if (!root || !canvas || root.hidden) {
-    // Already hidden by the sync skip-check above (or markup is missing) — nothing to play.
+  if (!root || !canvas) {
+    // Markup missing — nothing to play, and nothing depends on the class below.
     reveal();
   } else {
+    // Always added, even on a repeat visit where the intro screen itself is
+    // skipped (root.hidden below): sections outside this file (Hero's
+    // heading/lockup, Header's nav) key their own entrance animation off
+    // .has-preloader being removed, and those should replay on every reload —
+    // only the intro screen itself is once-per-session, not the page's
+    // entrance animations.
     document.documentElement.classList.add("has-preloader");
 
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (root.hidden) {
+      // Intro already played earlier this session — skip straight to
+      // revealing, next frame (not synchronously), so dependent entrance
+      // animations still get a real "from" state to transition out of
+      // instead of skipping their transition entirely.
+      requestAnimationFrame(() => {
+        markIntroSeen();
+        reveal();
+      });
+    } else {
+      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    const windowLoaded = new Promise<void>((resolve) => {
-      if (document.readyState === "complete") resolve();
-      else window.addEventListener("load", () => resolve(), { once: true });
-    });
+      const windowLoaded = new Promise<void>((resolve) => {
+        if (document.readyState === "complete") resolve();
+        else window.addEventListener("load", () => resolve(), { once: true });
+      });
 
-    const animationDone: Promise<void> = reducedMotion
-      ? Promise.resolve()
-      : import("@lottiefiles/dotlottie-web")
-          .then(
-            ({ DotLottie }) =>
-              new Promise<void>((resolve) => {
-                DotLottie.setWasmUrl(wasmUrl);
-                const ctx = canvas.getContext("2d");
-                const player = new DotLottie({
-                  canvas,
-                  src: lottieSrc,
-                  autoplay: true,
-                  loop: false,
-                  backgroundColor: "transparent",
-                  // "cover" (not "contain"): scale up to fill the whole viewport with
-                  // no letterbox bars on wide screens, cropping overflow top/bottom
-                  // instead — the logo sits centered with margin to spare either way.
-                  layout: { fit: "cover", align: [0.5, 0.5] },
-                  renderConfig: { autoResize: true },
-                });
-                if (ctx) {
-                  player.addEventListener("render", () => punchHoles(ctx, canvas));
-                }
-                player.addEventListener("complete", () => resolve());
-                player.addEventListener("loadError", () => resolve());
-                player.addEventListener("renderError", () => resolve());
-              })
-          )
-          .catch(() => undefined);
+      const animationDone: Promise<void> = reducedMotion
+        ? Promise.resolve()
+        : import("@lottiefiles/dotlottie-web")
+            .then(
+              ({ DotLottie }) =>
+                new Promise<void>((resolve) => {
+                  DotLottie.setWasmUrl(wasmUrl);
+                  const ctx = canvas.getContext("2d");
+                  const player = new DotLottie({
+                    canvas,
+                    src: lottieSrc,
+                    autoplay: true,
+                    loop: false,
+                    backgroundColor: "transparent",
+                    // "cover" (not "contain"): scale up to fill the whole viewport with
+                    // no letterbox bars on wide screens, cropping overflow top/bottom
+                    // instead — the logo sits centered with margin to spare either way.
+                    layout: { fit: "cover", align: [0.5, 0.5] },
+                    renderConfig: { autoResize: true },
+                  });
+                  if (ctx) {
+                    player.addEventListener("render", () => punchHoles(ctx, canvas));
+                  }
+                  player.addEventListener("complete", () => resolve());
+                  player.addEventListener("loadError", () => resolve());
+                  player.addEventListener("renderError", () => resolve());
+                })
+            )
+            .catch(() => undefined);
 
-    Promise.all([windowLoaded, animationDone]).then(() => {
-      markIntroSeen();
-      reveal();
-    });
+      Promise.all([windowLoaded, animationDone]).then(() => {
+        markIntroSeen();
+        reveal();
+      });
+    }
 
     // Absolute safety net, independent of the above — guarantees the page is
     // never permanently hidden behind the intro.
