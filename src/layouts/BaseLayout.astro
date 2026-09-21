@@ -25,6 +25,9 @@ const { title, description } = Astro.props;
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="description" content={description} />
     <title>{title}</title>
+    <!-- Preload the two weights used above the fold (body text + hero H1/uppercase labels) -->
+    <link rel="preload" href="/fonts/RethinkSans-Medium.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/RethinkSans-ExtraBold.woff2" as="font" type="font/woff2" crossorigin />
   </head>
   <body>
     <SmoothScroll />
