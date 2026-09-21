@@ -33,7 +33,7 @@ const columns = [
 const partnerLogos = [
   { src: adtvLogo, alt: "ADTV — Allgemeiner Deutscher Tanzlehrerverband" },
   { src: idoLogo, alt: "IDO — International Dance Organization" },
-  { src: tafLogo, alt: "TAF Germany" },
+  { src: tafLogo, alt: "TAF Germany", blend: true },
   { src: datLogo, alt: "DAT" },
   { src: hygieneLogo, alt: "Hygiene-zertifiziert" },
 ];
@@ -70,15 +70,22 @@ const partnerLogos = [
       ))}
     </div>
 
-    <div class="container footer__member">
-      <p class="footer__member-label">Bist du schon dabei?</p>
-      <Button variant="tertiary" icon="right" href="#">Mitgliederportal einloggen</Button>
-    </div>
+    <div class="container footer__member-row">
+      <div class="footer__member">
+        <p class="footer__member-label">Bist du schon dabei?</p>
+        <Button variant="tertiary" icon="right" href="#">Mitgliederportal einloggen</Button>
+      </div>
 
-    <div class="container footer__partners">
-      {partnerLogos.map((logo) => (
-        <Image src={logo.src} alt={logo.alt} height={60} />
-      ))}
+      <div class="footer__partners">
+        {partnerLogos.map((logo) => (
+          <Image
+            src={logo.src}
+            alt={logo.alt}
+            densities={[1, 2]}
+            class={logo.blend ? "footer__partner-logo--blend" : undefined}
+          />
+        ))}
+      </div>
     </div>
 
     <div class="container footer__bottom">
@@ -113,8 +120,22 @@ const partnerLogos = [
 
   .footer__grid {
     display: grid;
-    grid-template-columns: 1.6fr repeat(4, 1fr);
-    gap: var(--space-8);
+    /* `1fr` + `max-content` (not 5 even fr tracks, tried and nudged wider
+       three times before this) — per Figma (node 579:606): the 4 link
+       columns sit close together, each exactly as wide as its own longest
+       link, clustered flush against the container's right edge, with all
+       the row's leftover space folded into the one gap before them. `1fr`
+       on the about column is what creates that: it absorbs 100% of the
+       slack (the about column's own content stays put, flush left — only
+       its empty track grows), while the link columns can no longer be
+       forced wider than their content the way equal `1fr` tracks were. */
+    grid-template-columns: 1fr repeat(4, max-content);
+    /* 72px between the 4 link columns (was --space-8/32px) — client felt
+       them too tightly packed against the right edge; the wider gap here
+       also pulls the whole nav cluster's start left (the flexible `1fr`
+       about column shrinks to make room), not just spreading columns 2-5
+       apart, since it's the same `gap` used for every track boundary. */
+    gap: 72px;
     margin-bottom: var(--space-16);
   }
 
@@ -178,12 +199,20 @@ const partnerLogos = [
     text-underline-offset: 2px;
   }
 
+  .footer__member-row {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--space-8);
+    margin-bottom: var(--space-38);
+  }
+
   .footer__member {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     gap: var(--space-4);
-    margin-bottom: var(--space-16);
   }
 
   .footer__member-label {
@@ -199,14 +228,35 @@ const partnerLogos = [
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    justify-content: center;
-    gap: var(--space-10);
-    margin-bottom: var(--space-16);
+    justify-content: flex-end;
+    gap: var(--space-6);
   }
 
+  /* A shared bounding box per logo, not just a shared height (the old
+     `max-height: 60px; width: auto` rule) — the partner marks are wildly
+     different shapes (a near-square badge next to a wide flat wordmark), so
+     scaling every one to the same height alone still let the wide ones
+     (DAT, TAF) read much bigger than the square ones (ADTV, HYGIENE).
+     Capping both axes shrinks the wide marks down by width instead, so
+     their rendered size actually balances against the square ones — applied
+     straight to the `<img>` (not a wrapper box) so each element's own size
+     is the scaled logo itself, with no leftover padding inside a fixed box
+     inflating the gap between logos beyond the flex `gap` above. */
   .footer__partners :global(img) {
+    display: block;
     width: auto;
-    max-height: 60px;
+    height: auto;
+    /* Bumped up from 100/52 — client felt the logos read too small next to
+       Figma (node 579:606), where they sit noticeably larger/taller. */
+    max-width: 130px;
+    max-height: 68px;
+    object-fit: contain;
+  }
+
+  /* TAF logo ships on an opaque white plate — darken-blend it against the
+     footer's cream background so the plate disappears and only the mark shows */
+  .footer__partners :global(.footer__partner-logo--blend) {
+    mix-blend-mode: darken;
   }
 
   .footer__bottom {
@@ -223,15 +273,46 @@ const partnerLogos = [
   @media (max-width: 960px) {
     .footer__grid {
       grid-template-columns: repeat(2, 1fr);
+      /* Desktop's 72px (see .footer__grid above) is tuned for its own
+         `1fr`-cluster layout — back to the original 32px for the plain
+         2-column mobile stack. */
+      gap: var(--space-8);
     }
 
     .footer__about {
       grid-column: 1 / -1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .footer__logo {
+      margin-inline: auto;
     }
 
     .footer__bottom {
       flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .footer__member-row {
+      flex-direction: column;
       align-items: flex-start;
+      /* Desktop's --space-8 (32px) row gap is tuned for its own side-by-side
+         layout — bumped up for the stacked mobile column, where it's the
+         only space between the login link and the logos below it. */
+      gap: var(--space-16);
+      /* Desktop's --space-38 (152px) is tuned for the row's own wide,
+         side-by-side layout — cut down for the stacked mobile column so the
+         partner logos don't float so far from the copyright line below. */
+      margin-bottom: var(--space-16);
+    }
+
+    .footer__partners {
+      justify-content: center;
+      width: 100%;
     }
   }
 </style>

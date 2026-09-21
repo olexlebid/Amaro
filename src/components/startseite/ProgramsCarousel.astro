@@ -5,65 +5,588 @@
 // finished (progress indicator reads "1/5", matching the header's 5
 // Tanzangebot categories). The second Figma slide ("Masterschaft") is an
 // unedited duplicate of this one — same photo, same age tags, same
-// description — so it isn't included here rather than ship mismatched
-// content. Add the other 4 slides to `slides` below once Figma has them
-// (or real photos + copy are approved) — the carousel mechanics already
-// support more than one.
+// description. `href` below is a placeholder ("#") until each course gets
+// its own page, same convention as Header.astro. Real per-course
+// `ageTags`/`description` copy still needs to be drafted and approved — the
+// 4 non-Kindertanz slides below reuse Figma's one drafted set as a stand-in.
 import { Image } from "astro:assets";
 import Button from "../Button.astro";
 import kindertanz from "../../assets/startseite/kindertanz_giphop.jpg";
+import masterclass from "../../assets/startseite/programs_masterclass.jpg";
+import hochzeitstanz from "../../assets/startseite/programs_hochzeitstanz.jpg";
+import gesellschaftstanz from "../../assets/startseite/programs_gesellschaftstanz.jpg";
+import schuelerkurse from "../../assets/startseite/programs_schuelerkurse.jpg";
+
+const placeholderTags = ["Hip-Hop Masterclass", "Commercial Dance", "Urban Choreo"];
+const placeholderDescription = "Intensivtraining mit Gasttrainern, für alle mit Turnierambitionen.";
 
 const slides = [
   {
     heading: "Kindertanz & Hip-Hop",
     image: kindertanz,
-    ageTags: ["Mini Kids (3+)", "Kids (6+)", "Junioren (12+)", "Adults (16+)", "Classic"],
-    description: "Von den ersten Tanzschritten mit 3 Jahren bis zur eigenen Streetdance-Crew: für jedes Alter der passende Rhythmus.",
+    alt: "Kinder tanzen Hip-Hop im Kurs",
+    href: "#",
+    ageTags: [
+      "Mini Kids (3+)",
+      "Kids (6+)",
+      "Junioren (12+)",
+      "Adults (16+)",
+      "Classic",
+    ],
+    description:
+      "Von den ersten Tanzschritten mit 3 Jahren bis zur eigenen Streetdance-Crew: für jedes Alter der passende Rhythmus.",
+  },
+  {
+    heading: "Masterclass",
+    image: masterclass,
+    alt: "Hip-Hop-Team trainiert intensiv im Bühnenlicht",
+    href: "#",
+    ageTags: placeholderTags,
+    description: placeholderDescription,
+  },
+  {
+    heading: "Hochzeitstanz",
+    image: hochzeitstanz,
+    alt:
+      "Eure erste gemeinsame Choreografie, in wenigen Wochen einstudiert, ganz ohne Lampenfieber.",
+    href: "#",
+    ageTags: placeholderTags,
+    description: placeholderDescription,
+  },
+  {
+    heading: "Gesellschaftstanz",
+    image: gesellschaftstanz,
+    alt: "Tanzpaare beim Gesellschaftstanz in stimmungsvollem Ambiente",
+    href: "#",
+    ageTags: placeholderTags,
+    description: placeholderDescription,
+  },
+  {
+    heading: "Schülerkurse",
+    image: schuelerkurse,
+    alt: "Jugendliche tanzen ausgelassen im Schülerkurs",
+    href: "#",
+    ageTags: placeholderTags,
+    description: placeholderDescription,
   },
 ];
 ---
 
 <section class="programs section">
-  <div class="programs__track">
-    {slides.map((slide) => (
-      <article class="program-slide">
-        <div class="program-slide__media">
-          <Image src={slide.image} alt={`Tanzstunde ${slide.heading}`} width={520} height={420} />
-          <Button variant="primary" icon="none" href="#" class="program-slide__join">Drin</Button>
+  <div class="programs__pin" data-programs-pin>
+    <div class="programs__viewport" data-programs-viewport>
+      <div class="programs__track" data-programs-track>
+        {slides.map((slide) => (
+          <article class="program-slide" data-programs-slide>
+            <a class="program-slide__media" data-programs-media href={slide.href} aria-label={`Mehr zu ${slide.heading}`}>
+              <Image src={slide.image} alt={slide.alt} width={520} height={420} densities={[1, 2]} format="avif" />
+            </a>
+            <h2 class="program-slide__heading" data-programs-heading>{slide.heading}</h2>
+            <div class="program-slide__details">
+              <ul class="program-slide__tags">
+                {slide.ageTags.map((tag) => (
+                  <li><a href="#">{tag}</a></li>
+                ))}
+              </ul>
+              <p class="program-slide__description">{slide.description}</p>
+              <Button class="program-slide__cta" variant="primary" icon="right" href={slide.href}>Drin</Button>
+            </div>
+          </article>
+        ))}
+      </div>
+
+      <!-- Desktop: a faint 4%-opacity background watermark (decorative only
+           in that role, but still real text, not aria-hidden). Mobile: the
+           same element becomes the section's actual visible heading (see
+           the mobile styles below) — an <h2> either way, per client's SEO
+           request, rather than switching tags per breakpoint. -->
+      <h2 class="programs__word" data-programs-word>Tanzangebot</h2>
+
+      {slides.length > 1 && (
+        <div class="container programs__controls">
+          <div class="programs__progress">
+            <div class="programs__progress-bar" data-programs-progress style={`transform:scaleX(${1 / slides.length})`}></div>
+          </div>
+          <div class="programs__controls-row">
+            <span class="programs__counter" data-programs-counter>1/{slides.length}</span>
+            <Button variant="tertiary" icon="right" href="#">Trainingsplan</Button>
+          </div>
         </div>
-        <h2 class="program-slide__heading">{slide.heading}</h2>
-        <div class="program-slide__details">
-          <ul class="program-slide__tags">
-            {slide.ageTags.map((tag) => (
-              <li><a href="#">{tag}</a></li>
-            ))}
-          </ul>
-          <p class="program-slide__description">{slide.description}</p>
-        </div>
-      </article>
-    ))}
+      )}
+    </div>
   </div>
 
-  {slides.length > 1 && (
-    <div class="container programs__controls">
-      <div class="programs__progress">
-        <div class="programs__progress-bar" style={`width:${100 / slides.length}%`}></div>
-      </div>
-      <div class="programs__controls-row">
-        <span class="programs__counter">1/{slides.length}</span>
-        <Button variant="tertiary" icon="right" href="#">Trainingsplan</Button>
-      </div>
-    </div>
-  )}
+  <div class="programs__cursor" data-programs-cursor aria-hidden="true">Drin</div>
 </section>
 
+<script>
+  // Programs slider — desktop: pinned horizontal scroll via GSAP
+  // ScrollTrigger, the same pin+scrub engine Gallery.astro uses, scrubbed by
+  // the same Lenis-smoothed scroll position (see SmoothScroll.astro) instead
+  // of this section's own separate `window` scroll listener — this used to
+  // be a third, uncoordinated scroll-reactive system on the page (a Chrome
+  // performance trace flagged it alongside Lenis and Gallery's own
+  // ScrollTrigger both already running).
+  //
+  // `[data-programs-pin]` is the ScrollTrigger `trigger`/pin target. GSAP
+  // creates and sizes its own pin-spacer around it — replacing the old
+  // manually-computed `pin.style.height` — and pins it via `pinType:
+  // "transform"` (see the CLS comment below, ported from Gallery.astro's own
+  // fix for the same issue) instead of `[data-programs-viewport]`'s old
+  // `position: sticky`.
+  //
+  // Below ~900px (see the CSS breakpoint) and with reduced motion, none of
+  // this runs — the track falls back to a plain native horizontally
+  // scrollable/swipeable row, which is the better interaction on touch
+  // anyway, and progress there is driven by the track's own scroll events.
+  import gsap from "gsap";
+  import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  const pin = document.querySelector<HTMLElement>("[data-programs-pin]");
+  const viewport = document.querySelector<HTMLElement>("[data-programs-viewport]");
+  const track = document.querySelector<HTMLElement>("[data-programs-track]");
+  const slideEls = document.querySelectorAll<HTMLElement>("[data-programs-slide]");
+  const mediaEls = document.querySelectorAll<HTMLElement>("[data-programs-media]");
+  const headingEls = document.querySelectorAll<HTMLElement>("[data-programs-heading]");
+  const progressBar = document.querySelector<HTMLElement>("[data-programs-progress]");
+  const counter = document.querySelector<HTMLElement>("[data-programs-counter]");
+  const wordEl = document.querySelector<HTMLElement>("[data-programs-word]");
+  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // Very light title parallax — the heading drifts at most a few px off
+  // the track's own speed, capped by HEADING_PARALLAX_MAX regardless of how
+  // large `localOffset` gets (e.g. right at the very start/end of the pin,
+  // where the first/last slide sits far from its natural position — see
+  // `startShift` below). Uncapped, that offset once pushed a heading far
+  // enough to clip against the pinned viewport's `overflow: hidden`.
+  //
+  // The factor itself is computed per-slide-width in `measure()` below (see
+  // HEADING_PARALLAX_VISIBLE_AT), not fixed here — a fixed factor maxed out
+  // the ±36px while the card was still mostly off-screen, so the drift
+  // looked frozen for most of the time the card was actually visible and
+  // only "woke up" once it was nearly fully in view. 0.16 remains as the
+  // native-scroll fallback's factor, where there's no such visibility math.
+  const HEADING_PARALLAX_FACTOR = 0.16;
+  const HEADING_PARALLAX_MAX = 36;
+  // Reach max drift right as the card is this fraction visible (entering or
+  // leaving), so the drift is doing something for nearly its entire time
+  // on screen instead of sitting pinned at the cap.
+  const HEADING_PARALLAX_VISIBLE_AT = 0.1;
+
+  // Must match `.programs__track`'s `margin-left` in the pin-mode CSS below
+  // exactly (both are `-300px`/`300`) — see the comment there for why the
+  // track needs that margin at all.
+  const TRACK_BOX_EXTEND = 300;
+
+  // Must match `.program-slide__heading`'s `margin-left` (both `-220px`/
+  // `220`). "Centring a slide" means centring the whole visible card —
+  // heading overhang plus photo plus details column — not just the
+  // photo+details half, which without this correction sat 110px right of
+  // true centre (the overhang only pulls the composition's left edge out,
+  // so ignoring it shifts the *visual* centre left of the photo's own).
+  const HEADING_OVERHANG = 220;
+
+  // Perf: `mix-blend-mode: difference` on `.program-slide__heading` can't
+  // get its own `will-change: transform` layer without corrupting the
+  // blend (see the CSS comment) — so every `heading.style.transform` write
+  // below forces a repaint of the whole shared `.programs__track` layer
+  // (all 5 photos + all 5 headings), not a cheap composite. Two guards cut
+  // that cost: skip a heading whose shift barely moved since last frame
+  // (HEADING_SHIFT_EPSILON), and skip headings more than one slide away
+  // from the active one — by the time a card is that far off-centre its
+  // shift has already saturated at HEADING_PARALLAX_MAX (reached at just
+  // HEADING_PARALLAX_VISIBLE_AT visibility, see `measure()`), so it has
+  // nothing left to redraw for.
+  const HEADING_ACTIVE_WINDOW = 1;
+  const HEADING_SHIFT_EPSILON = 0.5;
+  const lastHeadingShift: (number | null)[] = new Array(headingEls.length).fill(null);
+
+  if (pin && viewport && track && slideEls.length) {
+    // `virtualScrollLeft` is in the same coordinate space as each slide's
+    // own `offsetLeft` — 0 would mean the track sits at its natural
+    // (unshifted) position. It's allowed to go negative, which is exactly
+    // what happens at the very start once `startShift` (below) is in play.
+    //
+    // `centerOffset` corrects for the fact that a slide's *centred* moment
+    // happens at `offsetLeft - (viewport half-width - slide half-width)`,
+    // not at `offsetLeft` itself — without it, every slide looked "already
+    // mid-transition" even while sitting dead centre (e.g. the very first
+    // slide always had its heading parallax pinned to its max, since the
+    // gap between its offsetLeft and its own centred position is largest
+    // there). It's 0 in native-scroll mode, where there's no such centring.
+    const render = (virtualScrollLeft: number, centerOffset = 0, parallaxFactor = HEADING_PARALLAX_FACTOR, progressFraction = 0) => {
+      // Every `offsetLeft` read below happens in this one pass, before any
+      // of the writes further down (counter text, progress bar width,
+      // heading transforms) — reading `slide.offsetLeft` again inside the
+      // headingEls loop after the progress bar's `style.width` write forced
+      // a synchronous reflow every scrub frame (confirmed via a Chrome
+      // performance trace). Caching it here also means the heading loop
+      // below doesn't need to re-read it at all.
+      let activeIndex = 0;
+      let closestDistance = Infinity;
+      const offsets: number[] = new Array(slideEls.length);
+      slideEls.forEach((slide, index) => {
+        const offsetLeft = slide.offsetLeft;
+        offsets[index] = offsetLeft;
+        const distance = Math.abs(offsetLeft - centerOffset - virtualScrollLeft);
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          activeIndex = index;
+        }
+      });
+
+      if (counter) counter.textContent = `${activeIndex + 1}/${slideEls.length}`;
+      // Continuous fill (how far scrolled overall), not a step per slide —
+      // a per-slide bar would jump in slideEls.length-sized increments
+      // instead of tracking the scroll smoothly. `transform: scaleX()`
+      // instead of `style.width` keeps this a compositor-only write
+      // instead of a layout one.
+      if (progressBar) progressBar.style.transform = `scaleX(${Math.min(1, Math.max(0, progressFraction))})`;
+
+      if (!prefersReducedMotion) {
+        headingEls.forEach((heading, index) => {
+          if (Math.abs(index - activeIndex) > HEADING_ACTIVE_WINDOW) return;
+          const localOffset = virtualScrollLeft - (offsets[index] - centerOffset);
+          const shift = Math.max(-HEADING_PARALLAX_MAX, Math.min(HEADING_PARALLAX_MAX, localOffset * parallaxFactor));
+          const previous = lastHeadingShift[index];
+          if (previous !== null && Math.abs(shift - previous) < HEADING_SHIFT_EPSILON) return;
+          lastHeadingShift[index] = shift;
+          heading.style.transform = `translateX(${shift}px)`;
+        });
+      }
+    };
+
+    const resetHeadings = () => {
+      headingEls.forEach((heading) => {
+        heading.style.transform = "";
+      });
+      lastHeadingShift.fill(null);
+    };
+
+    // The pinned pass runs from "first slide centred" to "last slide
+    // centred", not from "track's natural left edge" to "track's natural
+    // right edge" — otherwise the first/last card would start/stop flush
+    // with the container's own padding instead of mid-screen.
+    let startShift = 0;
+    let totalTravel = 0;
+    let centerOffset = 0;
+    let parallaxFactor = HEADING_PARALLAX_FACTOR;
+    // How far the background word travels, in px — sized so it fully exits
+    // past the left edge exactly as the pinned pass's own progress reaches
+    // 1, independent of `totalTravel` (which is many times larger, since it
+    // covers all 5 slides). Tying it to `self.progress` directly in
+    // `onUpdate` below — instead of embedding the word inside the track and
+    // letting it ride along at the cards' own speed — is what makes it
+    // finish its crawl exactly at the end of the whole scroll rather than
+    // vanishing off-screen after only the first slide or two.
+    let wordTravel = 0;
+
+    // Recomputes the geometry above and returns the pinned pass's total
+    // scroll distance. Called from the ScrollTrigger's `end` below — GSAP
+    // calls `end` functions on setup and on every refresh/resize (same
+    // "read live" pattern Gallery.astro's own `endX` uses), which
+    // guarantees these closure variables are fresh before GSAP reads any of
+    // them for that same refresh, rather than relying on an `onRefresh`
+    // callback (which fires *after* `end` has already been evaluated, so a
+    // remeasure there would still be one refresh behind).
+    const measure = () => {
+      const firstSlide = slideEls[0];
+      const lastSlide = slideEls[slideEls.length - 1];
+      const firstCenter = firstSlide.offsetLeft + (firstSlide.offsetWidth - HEADING_OVERHANG) / 2;
+      const lastCenter = lastSlide.offsetLeft + (lastSlide.offsetWidth - HEADING_OVERHANG) / 2;
+      startShift = viewport.clientWidth / 2 - firstCenter;
+      const endShift = viewport.clientWidth / 2 - lastCenter;
+      totalTravel = Math.max(0, startShift - endShift);
+      // Same gap `startShift` uses to centre the first slide — every
+      // slide needs it subtracted to find its own centred moment, see
+      // the `render` comment above.
+      centerOffset = viewport.clientWidth / 2 - (firstSlide.offsetWidth - HEADING_OVERHANG) / 2;
+
+      // `localOffset` at the point a card is HEADING_PARALLAX_VISIBLE_AT
+      // (e.g. 10%) visible, entering or leaving — the factor that puts
+      // HEADING_PARALLAX_MAX exactly there, so the drift is still moving
+      // for virtually the card's whole time on screen. `centerOffset` IS
+      // the card's rendered left edge at its own centred moment (see
+      // above), so the gap to its rendered position when only barely
+      // visible is exactly the localOffset reached at that point.
+      const slideWidth = firstSlide.offsetWidth;
+      const edgeRenderedLeft = viewport.clientWidth - HEADING_PARALLAX_VISIBLE_AT * slideWidth;
+      const edgeLocalOffset = Math.abs(centerOffset - edgeRenderedLeft);
+      parallaxFactor = edgeLocalOffset > 0 ? HEADING_PARALLAX_MAX / edgeLocalOffset : HEADING_PARALLAX_FACTOR;
+
+      // Starts flush against the left edge (see the CSS `left: 0`), so its
+      // own width alone is exactly how far it must move to fully clear the
+      // viewport — adding `viewport.clientWidth` on top (as if it started
+      // off-screen to the right) made it exit around 70% progress instead
+      // of finishing right at 100%.
+      if (wordEl) wordTravel = wordEl.offsetWidth;
+
+      return totalTravel;
+    };
+
+    const maxScrollLeft = () => track.scrollWidth - track.clientWidth;
+    const updateNative = () => {
+      const max = maxScrollLeft();
+      render(track.scrollLeft, 0, HEADING_PARALLAX_FACTOR, max > 0 ? track.scrollLeft / max : 0);
+    };
+
+    // Mirrors the CSS breakpoints below exactly. This used to be a
+    // hand-rolled `getMode()`/`applyMode()` pair driven by its own `resize`
+    // listener, kept in sync with the CSS by hand — a past bug where a
+    // stale inline `transform`/height survived a resize across the
+    // breakpoint and fought the mobile stacked CSS, producing a
+    // disappearing section and a stray horizontal scrollbar (see the git
+    // history for that fix). `ScrollTrigger.matchMedia` now owns breakpoint
+    // switching itself and calls each key's own cleanup function when its
+    // query stops matching, so there's a single source of truth instead of
+    // two systems that have to be kept manually in sync.
+    ScrollTrigger.matchMedia({
+      "(min-width: 901px) and (prefers-reduced-motion: no-preference)": () => {
+        // Measured eagerly here (not just inside `end` below) so
+        // `startShift`/`totalTravel` are already correct before GSAP
+        // evaluates the tween's `x` functions for the very first time —
+        // `tl.to(track, { x: ... })` alone tweens FROM the track's current
+        // rendered x (0, since no transform is applied yet) TO the given
+        // value, which left the very first frame under-shifted (first
+        // slide rendering too far left) until the first scroll-driven
+        // refresh corrected it. `fromTo` below now states the start
+        // position explicitly instead of relying on that default.
+        measure();
+
+        const scrollTrigger = {
+          trigger: pin,
+          start: "top top",
+          end: () => `+=${measure()}`,
+          scrub: true,
+          pin: true,
+          // Default pinning flips the pin target to `position: fixed`
+          // while active — Chrome's layout-shift tracking misreads that
+          // mode change as a huge, fake layout shift right at pin
+          // start/end (measured CLS 1.62 in Gallery.astro from this
+          // alone). `pinType: "transform"` pins via a translate instead,
+          // so `position` never changes and the false shift goes away.
+          pinType: "transform",
+          invalidateOnRefresh: true,
+          onUpdate: (self: ScrollTrigger) => {
+            render(self.progress * totalTravel - startShift, centerOffset, parallaxFactor, self.progress);
+            if (wordEl) wordEl.style.transform = `translateX(${-self.progress * wordTravel}px)`;
+          },
+        };
+
+        const tl = gsap.timeline({ scrollTrigger });
+        // Cheap on purpose: both `x` functions are only re-evaluated on
+        // setup and refresh (same timing as `end` above), not every scrub
+        // frame, so they can safely read the cached values `measure()`
+        // just set instead of re-reading layout themselves.
+        // `+ TRACK_BOX_EXTEND` cancels out the track's own `margin-left`
+        // (see the CSS comment on `.programs__track`): that margin shifts
+        // the track's static (pre-transform) position left by the same
+        // amount, so without adding it back here every slide would render
+        // that many px further left than intended. The "from" value is the
+        // first slide centred (matches `measure()`'s own `startShift`); the
+        // "to" value is the last slide centred (`startShift - totalTravel`).
+        tl.fromTo(
+          track,
+          { x: () => startShift + TRACK_BOX_EXTEND },
+          { x: () => startShift - totalTravel + TRACK_BOX_EXTEND, ease: "none" },
+          0,
+        );
+
+        return () => {
+          resetHeadings();
+          if (wordEl) wordEl.style.transform = "";
+        };
+      },
+      "(min-width: 901px) and (prefers-reduced-motion: reduce)": () => {
+        const handleScroll = () => requestAnimationFrame(updateNative);
+        track.addEventListener("scroll", handleScroll, { passive: true });
+        updateNative();
+
+        return () => {
+          track.removeEventListener("scroll", handleScroll);
+          resetHeadings();
+        };
+      },
+      "(max-width: 900px)": () => {
+        // Plain vertical stack (see the CSS) — no horizontal track to
+        // scroll/pin and no heading parallax, nothing to set up.
+      },
+    });
+  }
+
+  // Custom "Drin" cursor: on mouse/trackpad devices, the pill follows the
+  // pointer and replaces it (via `cursor: none` in CSS) while hovering any
+  // slide's photo, instead of sitting as a static button on the card.
+  // Touch/keyboard users still get the real link underneath — this is a
+  // purely visual enhancement layered on top.
+  //
+  // `min-width: 901px` on top of the hover/pointer check is deliberate: the
+  // mobile stacked layout already has its own always-visible "Drin" button
+  // per card (see .program-slide__cta) and never wants this cursor pill or
+  // the tilt effect below, but some touch devices/emulators still report
+  // `(hover: hover) and (pointer: fine)` as true — the width check is a hard
+  // backstop so neither can ever fire below the desktop breakpoint.
+  const cursor = document.querySelector<HTMLElement>("[data-programs-cursor]");
+  const hasHoverCursor = window.matchMedia("(hover: hover) and (pointer: fine) and (min-width: 901px)").matches;
+
+  if (cursor && hasHoverCursor) {
+    mediaEls.forEach((media) => {
+      media.addEventListener("pointerenter", () => cursor.classList.add("is-visible"));
+      media.addEventListener("pointerleave", () => cursor.classList.remove("is-visible"));
+    });
+
+    window.addEventListener(
+      "pointermove",
+      (event) => {
+        cursor.style.transform = `translate(${event.clientX}px, ${event.clientY}px) translate(-50%, -50%)`;
+      },
+      { passive: true },
+    );
+  }
+
+  // Tilted photo — vanilla port of reactbits.dev's "Tilted Card": the photo
+  // tilts in 3D toward the pointer and lifts slightly, following it 1:1 on
+  // move and gliding back to flat on leave (the CSS transition below, not a
+  // spring library, gives that settle). Same hover/pointer + reduced-motion
+  // gate as the "Drin" cursor above — nothing to drive this on touch anyway.
+  const ROTATE_AMPLITUDE = 14; // deg, matches reactbits.dev's own default
+  const SCALE_ON_HOVER = 1.05;
+
+  if (hasHoverCursor && !prefersReducedMotion) {
+    mediaEls.forEach((media) => {
+      media.addEventListener("pointermove", (event) => {
+        const rect = media.getBoundingClientRect();
+        const offsetX = (event.clientX - rect.left) / rect.width - 0.5;
+        const offsetY = (event.clientY - rect.top) / rect.height - 0.5;
+        const rotateX = offsetY * -ROTATE_AMPLITUDE;
+        const rotateY = offsetX * ROTATE_AMPLITUDE;
+        media.style.transform = `perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(${SCALE_ON_HOVER})`;
+      });
+
+      media.addEventListener("pointerleave", () => {
+        media.style.transform = "";
+      });
+    });
+  }
+</script>
+
 <style>
+  .programs__pin {
+    /* GSAP's ScrollTrigger wraps this in its own pin-spacer and sizes it
+       (see the script) on desktop; stays auto here so the section behaves
+       like normal flow otherwise. */
+    height: auto;
+  }
+
+  .programs__viewport {
+    position: relative; /* anchor for .programs__word below */
+    overflow: hidden;
+  }
+
+  /* Background watermark word, same treatment as Footer.astro's own
+     `.footer__watermark` (barely-tinted grey-900, 4% opacity). Sits later
+     in DOM than the track (i.e. visually "on top" of it in paint order —
+     the track paints its own opaque background across its full scrollable
+     width, see the mix-blend-mode comment below, which would hide anything
+     placed truly behind it) — but at 4% opacity it's imperceptible over a
+     photo, and `bottom` is tuned so it brackets the heading block (just
+     above "Kindertanz" down through the top portion of the photo, per
+     reference screenshot), not the empty space above the row or deep into
+     the photo's lower half. */
+  .programs__word {
+    display: none;
+    position: absolute;
+    left: 0;
+    bottom: 39%;
+    margin: 0;
+    font-family: var(--font-family-base);
+    font-weight: var(--font-title-weight);
+    font-size: 424px;
+    line-height: 1;
+    color: var(--color-grey-900);
+    opacity: 0.04;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 1;
+  }
+
   .programs__track {
+    position: relative; /* offsetParent anchor for the heading parallax math */
     display: flex;
-    gap: var(--space-6);
+    gap: calc(var(--space-20) * 3);
     overflow-x: auto;
     padding-inline: max(var(--space-6), calc((100vw - 1312px) / 2));
     scroll-snap-type: x proximity;
+    will-change: transform;
+    /* `will-change: transform` (needed so the pinned scroll's translateX
+       stays smooth) puts the track in its own compositing layer, which
+       isolates each heading's `mix-blend-mode: difference` to that layer.
+       Without an opaque background here, the part of a heading that isn't
+       over its photo blends against nothing and renders as garbled/near
+       invisible text instead of solid dark text. */
+    background: var(--color-grey-100);
+  }
+
+  /* Shown at the same breakpoint the pinned/native-scroll experience kicks
+     in at (see the two media queries below) regardless of motion
+     preference — under reduced motion it just never gets the translateX
+     update from the script, so it sits static instead of crawling. */
+  @media (min-width: 901px) {
+    .programs__word {
+      display: block;
+    }
+  }
+
+  /* Must mirror the ScrollTrigger.matchMedia key of the same name in the
+     script exactly, or the two fall out of sync. */
+  @media (min-width: 901px) and (prefers-reduced-motion: no-preference) {
+    .programs {
+      /* `.section`'s own top padding plus the pinned viewport's vertical
+         centring (see `.programs__viewport` below) added up to a much
+         bigger gap after Credentials than intended — this claws back
+         ~100px of it without touching `.section` itself. */
+      margin-top: -100px;
+    }
+
+    .programs__viewport {
+      /* No `position: sticky` here — GSAP pins `.programs__pin` (this
+         element's ancestor) itself via `pinType: "transform"` (see the
+         script), so this just needs to size/centre its content as a normal
+         block, the same way Gallery.astro's `.gallery__pin` does. */
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      /* With `justify-content: center`, asymmetric top padding shifts the
+         centred content down by exactly half of itself (the rest is
+         absorbed back by the centring math) — 60px here nets a 30px nudge. */
+      padding-top: 60px;
+      background: var(--color-grey-100); /* covers the pinned viewport so nothing behind it shows through while stuck */
+    }
+
+    .programs__track {
+      overflow: visible;
+      /* `.programs__track`'s own layout box is only as wide as the visible
+         viewport (its scrolling content overflows via `overflow: visible`
+         above, which paints outside that box without enlarging it). The
+         heading's 250px left overhang (`.program-slide__heading`'s
+         margin-left) reached past that box's left edge, and a
+         `mix-blend-mode: difference` element rendering outside its
+         ancestor's own box comes out corrupted/missing in places instead of
+         solid — a browser compositing quirk, not a layout bug. Shifting the
+         box 300px left (margin) and compensating with the same amount of
+         extra left padding keeps every slide's rendered position identical
+         while giving the heading enough room inside the box to blend
+         correctly. `width: max-content` matters too — without it the box
+         stays viewport-width, which is nowhere near wide enough to contain
+         every slide, so only whichever slide happened to land near that
+         narrow window's edge was affected. */
+      width: max-content;
+      margin-left: -300px;
+      padding-left: calc(max(var(--space-6), (100vw - 1312px) / 2) + 300px);
+    }
   }
 
   .program-slide {
@@ -72,7 +595,16 @@ const slides = [
     scroll-snap-align: start;
     display: grid;
     grid-template-columns: 520px 280px;
-    grid-template-rows: auto auto;
+    /* Second row fixed to the photo's own 420px height (not `auto`) — with
+       an auto row, a slide whose tags+description ran longer than the photo
+       (e.g. Masterclass's 3 tags) grew the row past 420px, so
+       .program-slide__details' `align-self: end` landed on that taller
+       row's bottom instead of the photo's, overflowing text below the card.
+       Pinned to a fixed 420px, `align-self: end` now always lands on the
+       photo's actual bottom edge; longer detail content just overflows
+       upward past the row's nominal top instead (same trick the heading
+       above already uses to overhang row 1). */
+    grid-template-rows: auto 420px;
     column-gap: var(--space-6);
   }
 
@@ -87,15 +619,50 @@ const slides = [
     color: var(--color-grey-100);
     mix-blend-mode: difference;
     margin-bottom: -1.2em;
+    margin-left: -220px; /* overhangs the photo on the left, per Figma — the script's HEADING_OVERHANG constant must match this */
     position: relative;
     z-index: 1;
     max-width: 520px;
+    /* Not `will-change: transform` here — promoting a `mix-blend-mode`
+       element to its own compositing layer makes it blend against a stale
+       snapshot of what's behind it while the layer is mid-update, which
+       showed up as chunks of the letterforms rendering wrong/missing while
+       the pinned scroll moved. The offset is tiny (see HEADING_PARALLAX_MAX
+       in the script) so the plain paint path is fast enough without it. */
+    pointer-events: none; /* let hover/click pass through to the photo/link it overlaps */
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .program-slide__heading {
+      /* Eases the drift toward whatever the scroll handler last set instead
+         of snapping to it every frame, so it visibly keeps gliding for a
+         moment after the page stops scrolling. */
+      transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
   }
 
   .program-slide__media {
     grid-column: 1;
     grid-row: 2;
+    display: block;
     position: relative;
+    cursor: pointer;
+  }
+
+  /* On mouse/trackpad devices the native cursor is hidden here in favour of
+     the "Drin" pill that follows the pointer instead (see .programs__cursor
+     and the pointerenter/leave wiring in the script). Touch and keyboard
+     users never lose the link — this is a purely visual swap.
+     `transition` here is what makes the tilt (set inline by the script on
+     pointermove) glide rather than snap, and what settles it back to flat
+     on pointerleave once the script clears the inline transform.
+     `min-width: 901px` matches the same hard backstop as `hasHoverCursor`
+     in the script — see the comment there. */
+  @media (hover: hover) and (pointer: fine) and (min-width: 901px) {
+    .program-slide__media {
+      cursor: none;
+      transition: transform 0.3s ease-out;
+    }
   }
 
   .program-slide__media :global(img) {
@@ -104,12 +671,6 @@ const slides = [
     height: 420px;
     object-fit: cover;
     border-radius: 16px;
-  }
-
-  .program-slide__join {
-    position: absolute;
-    right: var(--space-4);
-    bottom: var(--space-4);
   }
 
   .program-slide__details {
@@ -149,6 +710,16 @@ const slides = [
   }
 
   .programs__controls {
+    /* `.container` (shared utility) centers itself with `margin-inline:
+       auto`, which works in normal block flow but not here: as a flex item
+       of `.programs__viewport`'s column, auto cross-axis margins suppress
+       `align-items: stretch` and the box shrinks to fit its content instead
+       of the intended 1312px max-width — breaking the progress bar's own
+       percentage-based width. `align-self: center` + an explicit width
+       sidesteps that flexbox auto-margin quirk entirely. */
+    width: 100%;
+    margin-inline: 0;
+    align-self: center;
     margin-top: var(--space-8);
     display: flex;
     flex-direction: column;
@@ -162,7 +733,21 @@ const slides = [
 
   .programs__progress-bar {
     height: 1px;
+    width: 100%;
     background: var(--color-grey-900);
+    /* `transform: scaleX()` (set inline, see the script) instead of
+       `width` — a compositor-only write instead of a layout one, since
+       this updates every scrub frame alongside the carousel's own
+       pin+scrub. */
+    transform-origin: left;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .programs__progress-bar {
+      /* Smooths over the gap between individual scroll-driven updates so
+         the fill reads as continuous rather than ticking in small steps. */
+      transition: transform 0.15s linear;
+    }
   }
 
   .programs__controls-row {
@@ -179,16 +764,148 @@ const slides = [
     color: var(--color-grey-900);
   }
 
+  /* Mirrors Button's "primary" pill (see Button.astro) — kept as a plain
+     styled div here since it must sit outside the pinned/transformed
+     subtree to use `position: fixed` reliably (see the script comment). */
+  .programs__cursor {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 100;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 40px;
+    padding-inline: var(--space-4);
+    border-radius: 32px;
+    background: var(--color-green-500);
+    border: 1px solid var(--color-green-600);
+    color: var(--color-grey-50);
+    text-shadow: 0 0 4px var(--color-green-600);
+    font-family: var(--font-family-base);
+    font-weight: 700;
+    font-size: 1rem;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+  }
+
+  .programs__cursor.is-visible {
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .programs__cursor {
+      transition: opacity 0.15s ease;
+    }
+  }
+
+  /* Mobile-only CTA — desktop instead shows the pointer-following "Drin"
+     cursor (see .programs__cursor); touch devices have no hover state, so
+     the card needs its own real button there per Figma's mobile frame.
+     :global() because <Button> renders its own root element under its own
+     component scope, which a plain (auto-scoped) selector here can't reach —
+     and the 3-class chain (rather than the class alone) is needed to
+     out-specificity Button's own `.button[data-astro-cid-…]` rule, which
+     would otherwise win the display tug-of-war regardless of source order. */
+  :global(.program-slide .program-slide__details .program-slide__cta) {
+    display: none;
+  }
+
   @media (max-width: 900px) {
+    /* This section carries the whole 80px gap from Credentials alone (see
+       the matching padding-bottom override there) instead of splitting the
+       default 76/76 section rhythm — Figma's mobile frame wants 80px total. */
+    .programs {
+      padding-top: var(--space-20); /* 80px */
+    }
+
+    /* Progress bar + "1/5" counter + "Trainingsplan" link: a scroll-position
+       readout that doesn't apply once there's no scrollable track to
+       position along (see the plain vertical stack below) — Figma's mobile
+       frame omits this row entirely. */
+    .programs__controls {
+      display: none;
+    }
+
+    /* Stacks the watermark above the track (see .programs__word below) —
+       DOM order keeps it after the track (needed for desktop's paint-order
+       trick, see the comment above that rule), so only `order` can move it
+       above visually without touching desktop. */
+    .programs__viewport {
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Desktop's 424px/4%-opacity background watermark becomes the section's
+       real visible heading here — small eyebrow-style caps (matching every
+       other section's eyebrow label, e.g. Faq's "FAQS"), left-aligned with
+       the card list below instead of the absolutely-positioned desktop
+       placement. */
+    .programs__word {
+      display: block;
+      position: static;
+      order: -1;
+      padding-inline: max(var(--space-6), calc((100vw - 1312px) / 2));
+      margin-bottom: var(--space-4);
+      font-weight: var(--font-upper-weight);
+      font-size: var(--font-upper-200-size);
+      line-height: var(--font-upper-line);
+      letter-spacing: var(--font-upper-200-tracking);
+      text-transform: uppercase;
+      color: var(--color-grey-500);
+      opacity: 1;
+      white-space: normal;
+      pointer-events: auto;
+      z-index: auto;
+    }
+
+    /* Plain vertical stack — no horizontal scroll/snap, no pinning, no
+       heading parallax (see the `isStackedMobile` guard in the script). */
+    .programs__track {
+      flex-direction: column;
+      gap: var(--space-8);
+      overflow-x: visible;
+      scroll-snap-type: none;
+      width: auto;
+    }
+
     .program-slide {
       grid-template-columns: 1fr;
       grid-template-rows: auto auto auto;
-      width: 85vw;
+      row-gap: var(--space-4);
+      width: 100%;
+      scroll-snap-align: none;
+      background: var(--color-grey-200);
+      border-radius: 24px;
+      padding: var(--space-4);
     }
 
-    .program-slide__media,
+    .program-slide__heading {
+      /* Desktop overlays this on the photo (white text, blend-mode,
+         negative margin, left overhang) for the pinned-scroll effect —
+         none of that applies to the plain stacked mobile layout. */
+      grid-row: 2;
+      align-self: auto;
+      position: static;
+      z-index: auto;
+      margin-left: 0;
+      margin-bottom: 0;
+      mix-blend-mode: normal;
+      color: var(--color-grey-900);
+      font-size: clamp(1.75rem, 6vw, 2.25rem);
+      max-width: none;
+    }
+
+    .program-slide__media {
+      grid-column: 1;
+      grid-row: 1;
+    }
+
     .program-slide__details {
       grid-column: 1;
+      grid-row: 3;
     }
 
     .program-slide__media :global(img) {
@@ -197,8 +914,36 @@ const slides = [
       aspect-ratio: 520 / 420;
     }
 
-    .program-slide__details {
-      grid-row: 3;
+    /* Pills instead of desktop's underlined text-link list. */
+    .program-slide__tags {
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+    }
+
+    /* Figma dev-mode values for this chip (mobile frame): padding 5px/8px,
+       border-radius 12px (a rounded rect, not the full 32px pill used
+       elsewhere), border/background as a tinted-black overlay at low alpha
+       rather than a solid grey-300 line, text sized to its ~12px content
+       box — all smaller/subtler than the first-pass guess. */
+    .program-slide__tags a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: auto;
+      padding: 5px 8px;
+      border: 1px solid rgba(21, 21, 20, 0.1);
+      border-radius: 12px;
+      background: rgba(21, 21, 20, 0.05);
+      text-decoration: none;
+      font-size: 0.75rem; /* 12px */
+      line-height: 1;
+      color: var(--color-grey-900);
+    }
+
+    :global(.program-slide .program-slide__details .program-slide__cta) {
+      display: inline-flex;
+      align-self: flex-start;
     }
   }
 </style>

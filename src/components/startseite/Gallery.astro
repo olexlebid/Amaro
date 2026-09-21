@@ -1,26 +1,88 @@
 ---
-// Fanned photo gallery, slightly rotated overlapping cards. Figma node 563:4007.
+// Fanned photo gallery. Figma node 563:4007 for the card styling; the
+// desktop scroll behaviour (pin + horizontal scrub, ending on the Instagram
+// card centered) ports papertiger.com/agency's "about-team" section — see
+// the script below for how that reference was reverse-engineered.
 import { Image } from "astro:assets";
-import gallery01 from "../../assets/startseite/gallery_01.jpg";
+import Button from "../Button.astro";
+import InstagramIcon from "../icons/InstagramIcon.astro";
 import gallery02 from "../../assets/startseite/gallery_02.jpg";
-import gallery03 from "../../assets/startseite/gallery_03.jpg";
-import gallery04 from "../../assets/startseite/gallery_04.png";
+import galleryTeamJubel from "../../assets/startseite/gallery_team_jubel.jpg";
+import galleryStreetstyle from "../../assets/startseite/gallery_streetstyle.jpg";
+import galleryStudioTraining from "../../assets/startseite/gallery_studio_training.jpg";
+import gallery05 from "../../assets/startseite/gallery_05.jpg";
+import gallery06 from "../../assets/startseite/gallery_06.jpg";
+import amaroLogoCircle from "../../assets/icons/amaro_logo_circle.svg";
 
 const photos = [
-  { src: gallery01, rotate: "-8deg", alt: "Pokal und Maskottchen nach einem Hip-Hop-Wettbewerb" },
-  { src: gallery02, rotate: "-0.6deg", alt: "Hip-Hop-Team von Amaro bei einem Bühnenauftritt" },
-  { src: gallery03, rotate: "-3.83deg", alt: "Tänzerinnen von Amaro backstage bei einem Wettbewerb" },
-  { src: gallery04, rotate: "-7.03deg", alt: "Amaro-Team feiert einen Auftritt" },
+  // rotate/offsetY: the card's starting tilt — baked in via CSS, so it's
+  // also the no-JS/reduced-motion resting state (see the CSS below). The
+  // script further down animates rotation from this angle back to 0 (level)
+  // as the card scrubs across the screen — see that script for why.
+  // gallery02 is the one real Amaro photo kept in this row; the rest are
+  // curated stock photos until more real photos exist for these slots.
+  { src: galleryTeamJubel, rotate: "-8deg", offsetY: "8px", alt: "Tanzgruppe jubelt gemeinsam mit erhobenen Armen" },
+  { src: gallery02, rotate: "5deg", offsetY: "-22px", alt: "Hip-Hop-Team von Amaro bei einem Bühnenauftritt" },
+  { src: galleryStreetstyle, rotate: "-11deg", offsetY: "14px", alt: "Tänzer im urbanen Streetstyle-Look" },
+  { src: galleryStudioTraining, rotate: "7deg", offsetY: "-10px", alt: "Tanzgruppe beim Training im Spiegelsaal" },
+  { src: gallery05, rotate: "9deg", offsetY: "18px", alt: "Tänzerinnen in dynamischer Gruppenformation" },
+  { src: gallery06, rotate: "-6deg", offsetY: "-16px", alt: "Tänzer im dramatischen Gegenlicht" },
 ];
 ---
 
 <section class="gallery section">
-  <div class="gallery__row">
-    {photos.map((photo) => (
-      <div class="gallery__card" style={`--rotate: ${photo.rotate}`}>
-        <Image src={photo.src} alt={photo.alt} width={364} height={564} />
+  <!-- Desktop only (see the 900px breakpoint below): pinned section, cards
+       scrub horizontally with vertical scroll until the Instagram card
+       centers, then normal vertical scroll continues. Native horizontal
+       scroll (overflow-x) is the resting/fallback state — for no-JS and
+       prefers-reduced-motion visitors every card stays reachable, just
+       without the pin/scrub, instead of being clipped and lost. -->
+  <div class="gallery__pin" data-gallery-section>
+    <div class="gallery__row" data-gallery-track>
+      {photos.map((photo) => (
+        <div class="gallery__card" style={`--rotate: ${photo.rotate}; --offset-y: ${photo.offsetY}`}>
+          <Image src={photo.src} alt={photo.alt} width={503} height={779} densities={[1, 2]} format="avif" />
+        </div>
+      ))}
+
+      <div class="gallery__end" data-gallery-end>
+        <img class="gallery__end-avatar" src={amaroLogoCircle.src} alt="" width="96" height="96" />
+        <div class="gallery__end-body">
+          <div class="gallery__end-text">
+            <p class="gallery__end-handle">tanzschule.amaro</p>
+            <p class="gallery__end-followers">290 followers</p>
+          </div>
+          <Button class="gallery__end-cta" variant="primary" icon="left" iconComponent={InstagramIcon} href="https://www.instagram.com/tanzschule.amaro/">
+            Folge uns in Instagram
+          </Button>
+        </div>
       </div>
-    ))}
+    </div>
+  </div>
+
+  <!-- Mobile-only Instagram teaser — Figma's mobile frame swaps the fanned
+       desktop row for a flat 3x2 grid (all 6 cards) plus this follow card. -->
+  <div class="gallery__mobile container">
+    <div class="gallery__grid">
+      {photos.map((photo) => (
+        <div class="gallery__grid-cell">
+          <Image src={photo.src} alt={photo.alt} width={364} height={564} densities={[1, 2]} format="avif" />
+        </div>
+      ))}
+    </div>
+
+    <div class="gallery__instagram">
+      <img class="gallery__instagram-avatar" src={amaroLogoCircle.src} alt="" width="96" height="96" />
+      <div class="gallery__instagram-body">
+        <div class="gallery__instagram-info">
+          <p class="gallery__instagram-handle">tanzschule.amaro</p>
+          <p class="gallery__instagram-followers">290 followers</p>
+        </div>
+        <Button class="gallery__instagram-cta" variant="primary" icon="left" iconComponent={InstagramIcon} href="https://www.instagram.com/tanzschule.amaro/">
+          Folge uns in Instagram
+        </Button>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -29,36 +91,249 @@ const photos = [
     overflow: hidden;
   }
 
+  .gallery__pin {
+    position: relative;
+    /* Fills the pinned viewport height and centers the row inside it
+       vertically, instead of sitting flush under the header. */
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    /* Native horizontal scroll is the baseline — the script below hides it
+       (via .is-scrubbed, overflow: hidden) only once GSAP actually takes
+       over. Without that, prefers-reduced-motion and no-JS visitors can
+       still reach every card by scrolling/swiping sideways here. */
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    /* The first card starts partway across the screen (not flush against
+       the left edge), but closer to it than dead-center so more of the
+       first two cards are visible before any scroll happens. */
+    padding-inline-start: 22vw;
+  }
+
+  .gallery__pin.is-scrubbed {
+    overflow: hidden;
+  }
+
   .gallery__row {
     display: flex;
-    justify-content: center;
+    align-items: center;
     gap: var(--space-6);
-    padding-block: var(--space-10);
+    width: max-content;
+    will-change: transform;
   }
 
   .gallery__card {
     flex-shrink: 0;
-    transform: rotate(var(--rotate));
-    box-shadow: 0 20px 40px var(--color-grey-20p);
+    /* Per-card rotation + vertical jitter (baked values below) — a fanned,
+       scattered-pile look, matching papertiger.com/agency's reference. */
+    transform: rotate(var(--rotate)) translateY(var(--offset-y, 0px));
     border-radius: 16px;
   }
 
   .gallery__card :global(img) {
     display: block;
-    width: 227px;
-    height: 352px;
+    /* Fluid width instead of a flat px value, so the row reads at roughly
+       the same relative size on any desktop viewport (a 1440px laptop and a
+       2560px monitor) instead of shrinking/ballooning with raw vw. ~15%
+       larger than the previous 272px flat size, at the 1440px Figma width. */
+    width: clamp(230px, 21.7vw, 340px);
+    aspect-ratio: 313 / 485;
+    height: auto;
     object-fit: cover;
     border-radius: 16px;
   }
 
+  /* Figma node 563:4177 — logo to the left, handle/followers/button stacked
+     to its right (not a top-to-bottom stack of all three). */
+  .gallery__end {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-5);
+    padding: var(--space-8);
+  }
+
+  .gallery__end-avatar {
+    display: block;
+    flex-shrink: 0;
+    width: 96px;
+    height: 96px;
+  }
+
+  /* Handle/followers stay flush together (just their own line-heights);
+     the larger gap below is only between that text block and the button. */
+  .gallery__end-body {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+
+  .gallery__end-text {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .gallery__end-handle {
+    font-family: var(--font-family-base);
+    font-weight: var(--font-title-weight);
+    font-size: var(--font-title-100-size);
+    line-height: var(--font-title-100-line);
+    color: var(--color-grey-900);
+  }
+
+  .gallery__end-followers {
+    font-family: var(--font-family-base);
+    font-weight: var(--font-body-weight);
+    font-size: var(--font-body-100-size);
+    color: var(--color-grey-500);
+  }
+
+  .gallery__mobile {
+    display: none;
+  }
+
   @media (max-width: 900px) {
-    .gallery__row {
+    /* Desktop's pinned/fanned row is replaced entirely by the flat grid +
+       Instagram card below, not just resized. */
+    .gallery__pin {
+      display: none;
+    }
+
+    .gallery__mobile {
+      display: block;
+    }
+
+    .gallery__grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
       gap: var(--space-3);
     }
 
-    .gallery__card :global(img) {
-      width: 140px;
-      height: 217px;
+    .gallery__grid-cell {
+      border-radius: 16px;
+      overflow: hidden;
     }
+
+    .gallery__grid-cell :global(img) {
+      display: block;
+      width: 100%;
+      height: 100%;
+      aspect-ratio: 3 / 4;
+      object-fit: cover;
+    }
+
+    .gallery__instagram {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-5);
+      margin-top: var(--space-8);
+    }
+
+    .gallery__instagram-avatar {
+      display: block;
+      flex-shrink: 0;
+      width: 96px;
+      height: 96px;
+    }
+
+    .gallery__instagram-body {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--space-2);
+      min-width: 0;
+    }
+
+    .gallery__instagram-handle {
+      font-family: var(--font-family-base);
+      font-weight: var(--font-title-weight);
+      font-size: var(--font-title-100-size);
+      line-height: var(--font-title-100-line);
+      color: var(--color-grey-900);
+    }
+
+    .gallery__instagram-followers {
+      font-family: var(--font-family-base);
+      font-weight: var(--font-body-weight);
+      font-size: var(--font-body-100-size);
+      color: var(--color-grey-500);
+    }
+
   }
 </style>
+
+<script>
+  // Pins the desktop gallery and scrubs the card row horizontally with
+  // vertical scroll — a port of papertiger.com/agency's "about-team"
+  // section (GSAP ScrollTrigger pin + scrub). The inertia feel comes from
+  // Lenis (see SmoothScroll.astro, included site-wide in BaseLayout) doing
+  // the actual scroll smoothing — `scrub: true` ties this tween directly to
+  // that already-smoothed scroll position 1:1, rather than adding a second,
+  // separate lag on top of it (which felt sluggish/double-smoothed).
+  //
+  // The end position isn't "track fully scrolled" — it's calculated so the
+  // Instagram card's center lands on the viewport's center, per spec, then
+  // normal vertical scroll continues.
+  //
+  // Cards also straighten out as they cross the screen: each one starts at
+  // its baked CSS tilt (GSAP reads that as the tween's start value, so
+  // there's no snap/flash) and animates to rotation: 0 (level) by the time
+  // the scroll ends — the reference site's own cards don't do this (their
+  // rotation is static, only position scrubs), but the client specifically
+  // asked for the tilt itself to animate here, scattered → level.
+  import gsap from "gsap";
+  import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  const section = document.querySelector<HTMLElement>("[data-gallery-section]");
+  const track = document.querySelector<HTMLElement>("[data-gallery-track]");
+  const endCard = document.querySelector<HTMLElement>("[data-gallery-end]");
+  const cards = Array.from(document.querySelectorAll<HTMLElement>(".gallery__card"));
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  if (section && track && endCard && !reducedMotion) {
+    // Matches the 900px breakpoint the CSS above swaps layouts at — this
+    // never runs (and never pins/hides overflow) on the mobile layout.
+    ScrollTrigger.matchMedia({
+      "(min-width: 901px)": () => {
+        section.classList.add("is-scrubbed");
+
+        // Distance (negative = leftward) to slide the track so the end
+        // card's center meets the viewport's center. Read live each time
+        // GSAP calls it (on setup and on every refresh/resize) rather than
+        // once, since it depends on the track's untransformed layout.
+        const endX = () => {
+          const endRect = endCard.getBoundingClientRect();
+          return -(endRect.left + endRect.width / 2 - window.innerWidth / 2);
+        };
+
+        const scrollTrigger = {
+          trigger: section,
+          start: "top top",
+          end: () => `+=${Math.abs(endX())}`,
+          scrub: true,
+          pin: true,
+          // Default pinning flips the section to `position: fixed` while
+          // active — Chrome's layout-shift tracking misreads that mode
+          // change (viewport-relative vs document-relative coordinates) as
+          // a huge, fake layout shift right at pin start/end (measured
+          // CLS 1.62 from this alone). `pinType: "transform"` pins via a
+          // translate instead, so `position` never changes and the false
+          // shift goes away — same visual pin, no CLS.
+          pinType: "transform",
+          invalidateOnRefresh: true,
+        };
+
+        const tl = gsap.timeline({ scrollTrigger });
+        tl.to(track, { x: endX, ease: "none" }, 0);
+        tl.to(cards, { rotation: 0, ease: "none" }, 0);
+
+        // ScrollTrigger.matchMedia's own cleanup on breakpoint change.
+        return () => section.classList.remove("is-scrubbed");
+      },
+    });
+  }
+</script>

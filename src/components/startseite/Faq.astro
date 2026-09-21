@@ -31,7 +31,7 @@ const faqs = [
     <div class="faq__intro">
       <p class="faq__eyebrow u-upper-200">FAQs</p>
       <h2 class="faq__heading">Häufige Fragen</h2>
-      <Button variant="primary" icon="right" href="#">Weitere Fragen</Button>
+      <Button class="faq__cta faq__cta--top" variant="primary" icon="right" href="#">Weitere Fragen</Button>
     </div>
 
     <dl class="faq__list">
@@ -42,6 +42,8 @@ const faqs = [
         </div>
       ))}
     </dl>
+
+    <Button class="faq__cta faq__cta--bottom" variant="primary" icon="right" href="#">Weitere Fragen</Button>
   </div>
 </section>
 
@@ -69,10 +71,19 @@ const faqs = [
     font-size: clamp(2.5rem, 6vw, var(--font-title-600-size));
     line-height: var(--font-title-600-line);
     color: var(--color-grey-900);
+    /* Figma (node 563:3980) wraps "Häufige Fragen" onto two lines via a
+       fixed 468px box at the 80px desktop type size — max-width (not a
+       fixed width) keeps that same break on the smaller clamped sizes
+       between breakpoints instead of just cutting the box down proportionally. */
+    max-width: 468px;
   }
 
   .faq__list {
     margin: 0;
+    /* Drops the first question down to line up with the heading's own top
+       (not the eyebrow above it) — the grid otherwise top-aligns both
+       columns flush with .faq__intro's first child, the eyebrow. */
+    margin-top: calc(var(--font-upper-200-size) + var(--space-6));
     display: flex;
     flex-direction: column;
     gap: var(--space-10);
@@ -96,9 +107,48 @@ const faqs = [
     color: var(--color-grey-600);
   }
 
+  /* Two copies of the button, one per breakpoint (see markup): desktop
+     keeps it in .faq__intro beside the heading, mobile moves it after the
+     question list — simpler than fighting the CSS grid/DOM order to
+     relocate a single instance across such different layouts.
+     :global() because <Button> renders its own root element under its own
+     component scope, which a plain (auto-scoped) selector here can't reach —
+     and the 3-class chain (rather than the class alone) is needed to
+     out-specificity Button's own `.button[data-astro-cid-…]` rule, which
+     would otherwise win the display tug-of-war regardless of source order. */
+  :global(.faq .faq__grid .faq__cta--bottom) {
+    display: none;
+  }
+
   @media (max-width: 900px) {
     .faq__grid {
       grid-template-columns: 1fr;
+      /* Desktop's 64px column gap would otherwise still apply as a row gap
+         once the columns stack, stacking on top of the two margin-top
+         values below — zeroed out so those are the only spacing source. */
+      gap: 0;
+    }
+
+    /* Desktop's margin-top trick (see .faq__list above) offsets the list
+       against a two-column row that no longer exists once the columns
+       stack — here the intro sits directly above the list, so the gap is
+       just a flat 32px between the heading and the first question. */
+    .faq__list {
+      margin-top: var(--space-8);
+    }
+
+    :global(.faq .faq__intro .faq__cta--top) {
+      display: none;
+    }
+
+    :global(.faq .faq__grid .faq__cta--bottom) {
+      display: inline-flex;
+      grid-column: 1;
+      /* Grid items stretch to fill the column by default — without this the
+         button (an inline-flex box, but blockified as a grid item) grows to
+         the full grid width instead of hugging its own content. */
+      justify-self: start;
+      margin-top: var(--space-8);
     }
   }
 </style>

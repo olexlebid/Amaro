@@ -35,15 +35,11 @@ import glow from "../../assets/startseite/hero_decorative_glow.svg";
       <span class="hero__adtv-badge">ADTV</span>
       <span class="hero__lockup-label">Tanzschule • Amaro</span>
     </div>
-    <h1 class="hero__heading" data-blur-heading>
-      <span class="hero__heading-word" data-word>Willkommen</span>
-      <span class="hero__heading-word" data-word>in</span>
-      <br />
-      <span class="hero__heading-line2">
-        <span class="hero__heading-word" data-word>unserer</span>
-        <span class="hero__heading-word" data-word>Tanzfamilie</span>
-      </span>
-      <span class="hero__since">est. 2006</span>
+    <h1 class="hero__heading" data-split-heading>
+      Willkommen in{" "}
+      <br class="hero__heading-break" />
+      <span class="hero__heading-line2">unserer Tanzfamilie</span>
+      <span class="hero__since" data-since>est. 2006</span>
     </h1>
   </div>
 </section>
@@ -188,48 +184,11 @@ import glow from "../../assets/startseite/hero_decorative_glow.svg";
     max-width: 20ch;
   }
 
-  /* Word-by-word blur-in (JS-enhanced, see script below) — a vanilla port of
-     reactbits.dev's "Blur Text". Plain, fully visible text until the script
-     opts a word into the "ready" (pre-animation, blurred/offset) state and
-     then, once the preloader is gone, the "revealed" keyframe animation —
-     so no JS / reduced motion just reads normally, never stuck blurred. */
-  .hero__heading-word {
-    display: inline-block;
-    white-space: pre;
-  }
-
-  .hero__heading-word:not(:last-child)::after {
-    content: " ";
-  }
-
-  .hero__heading--ready .hero__heading-word {
-    filter: blur(10px);
-    opacity: 0;
-    transform: translateY(-24px);
-  }
-
-  .hero__heading--revealed .hero__heading-word {
-    animation: hero-heading-word-in 0.7s linear both;
-    animation-delay: var(--word-delay, 0s);
-  }
-
-  @keyframes hero-heading-word-in {
-    0% {
-      filter: blur(10px);
-      opacity: 0;
-      transform: translateY(-24px);
-    }
-    50% {
-      filter: blur(5px);
-      opacity: 0.5;
-      transform: translateY(2px);
-    }
-    100% {
-      filter: blur(0);
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
+  /* Word-by-word fade-up (JS-enhanced, GSAP SplitText — see script below,
+     same engine/effect as CountdownCta.astro's result text). Words are
+     hidden via inline styles the script sets at split time, not CSS, so
+     no-JS / reduced-motion visitors simply get the plain, fully visible
+     heading — nothing here can leave it stuck hidden. */
 
   /* "Willkommen in" / "unserer Tanzfamilie" is a fixed two-line split, not a
      width-dependent wrap. Below 640px the fixed hero title font floor (3.5rem)
@@ -240,6 +199,14 @@ import glow from "../../assets/startseite/hero_decorative_glow.svg";
     .hero__heading-line2 {
       white-space: nowrap;
     }
+  }
+
+  /* Held invisible until the preloader clears — no-JS/reduced-motion fallback
+     for the GSAP-driven fade-up below (see the script), which hides this via
+     inline styles and reveals it right after the heading's own words finish
+     staggering in. */
+  :global(html.has-preloader) .hero__since {
+    opacity: 0;
   }
 
   /* Inline in the heading's own text flow (not a flex sibling) so it always
@@ -281,6 +248,16 @@ import glow from "../../assets/startseite/hero_decorative_glow.svg";
       margin-inline: auto;
     }
 
+    /* Desktop's fixed "Willkommen in" / "unserer Tanzfamilie" split (see the
+       markup) leaves each half too long to fit the mobile font floor
+       (3.5rem) on its own, so it was wrapping *within* each half too —
+       "Willkommen" / "in" / "unserer" / "Tanzfamilie". Dropping the hard
+       break here lets all four words reflow as one run, landing "in" and
+       "unserer" together on their own line per client feedback. */
+    .hero__heading-break {
+      display: none;
+    }
+
     .hero__since {
       display: block;
       margin: var(--space-4) 0 0;
@@ -314,27 +291,53 @@ import glow from "../../assets/startseite/hero_decorative_glow.svg";
       } else {
         heroVideo.addEventListener("canplay", reveal, { once: true });
       }
+
+      // The browser has no reason to stop decoding a looping <video> once
+      // it's scrolled out of view — measured it still happily decoding
+      // frames all the way down at the footer. Pause it there and resume
+      // if the user scrolls back up, instead of burning CPU/GPU on a video
+      // nobody's looking at for the rest of the session.
+      const visibilityObserver = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            if (heroVideo.paused) heroVideo.play().catch(() => {});
+          } else {
+            heroVideo.pause();
+          }
+        },
+        { threshold: 0 },
+      );
+      visibilityObserver.observe(heroVideo);
     }
   }
 </script>
 
 <script>
-  // Reveals the hero heading word-by-word with a blur/fade/rise-in, timed to
-  // the preloader's own fade-out — the same trigger the rest of the hero's
-  // entrance animation uses (see the CSS above). Vanilla port of
-  // reactbits.dev's "Blur Text" (framer-motion in the original; plain CSS
-  // keyframes + a staggered animation-delay per word here instead, so this
-  // doesn't need an extra animation library).
-  const heading = document.querySelector<HTMLElement>("[data-blur-heading]");
-  const words = Array.from(document.querySelectorAll<HTMLElement>("[data-word]"));
+  // Reveals the hero heading word-by-word with a fade-up stagger (GSAP
+  // SplitText), timed to the preloader's own fade-out — same trigger as the
+  // rest of the hero's entrance animation (see the CSS above), and the same
+  // effect/engine as CountdownCta.astro's result-text reveal.
+  import gsap from "gsap";
+  import { SplitText } from "gsap/SplitText";
+
+  gsap.registerPlugin(SplitText);
+
+  const heading = document.querySelector<HTMLElement>("[data-split-heading]");
+  const since = document.querySelector<HTMLElement>("[data-since]");
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  if (heading && words.length && !reducedMotion) {
-    // Matches the delay={200} used in reactbits.dev's own usage example.
-    const STAGGER_MS = 200;
-    words.forEach((word, i) => {
-      word.style.setProperty("--word-delay", `${i * STAGGER_MS}ms`);
-    });
+  if (heading && !reducedMotion) {
+    // "est. 2006" gets its own (later) beat below, so it's excluded here
+    // rather than staggering in as just two more words of the heading.
+    const words = SplitText.create(heading, { type: "words", ignore: "[data-since]" }).words;
+    gsap.set(words, { opacity: 0, y: 24 });
+    if (since) gsap.set(since, { opacity: 0, y: 16 });
+
+    function reveal() {
+      const tl = gsap.timeline();
+      tl.to(words, { opacity: 1, y: 0, duration: 0.7, stagger: 0.08, ease: "power2.out" });
+      if (since) tl.to(since, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, "-=0.3");
+    }
 
     // Preloader.astro always adds .has-preloader up front and removes it once
     // ready — on a first visit that's after the intro screen plays, on a
@@ -343,19 +346,18 @@ import glow from "../../assets/startseite/hero_decorative_glow.svg";
     // itself is once-per-session, not this heading animation.
     const htmlEl = document.documentElement;
     if (htmlEl.classList.contains("has-preloader")) {
-      // Blurred/offset "ready" state first, so there's no flash of the
-      // fully visible heading before the preloader clears.
-      heading.classList.add("hero__heading--ready");
       const preloaderDone = new MutationObserver(() => {
         if (!htmlEl.classList.contains("has-preloader")) {
           preloaderDone.disconnect();
-          heading.classList.add("hero__heading--revealed");
+          reveal();
         }
       });
       preloaderDone.observe(htmlEl, { attributes: true, attributeFilter: ["class"] });
+    } else {
+      // Preloader.astro's markup is missing, so .has-preloader will never
+      // clear on its own — reveal right away instead of leaving the words
+      // stuck hidden.
+      reveal();
     }
-    // else: Preloader.astro's markup is missing, so nothing will ever clear
-    // .has-preloader — leave the heading in its plain, fully visible resting
-    // state rather than getting stuck blurred.
   }
 </script>

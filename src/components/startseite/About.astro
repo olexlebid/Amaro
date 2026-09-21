@@ -1,17 +1,25 @@
 ---
 // "Das Team seid Ihr." — About section. Figma node 563:3998.
 import Button from "../Button.astro";
-import decorativeMark from "../../assets/startseite/about_decorative_mark.svg";
 ---
 
 <section class="about section">
   <div class="container about__grid">
     <div class="about__intro">
       <p class="about__eyebrow u-upper-200">Über uns</p>
-      <p class="about__heading">Das Team seid Ihr.</p>
+      <p class="about__heading">Das Team<br />seid Ihr.</p>
     </div>
 
-    <img class="about__mark" src={decorativeMark.src} alt="" aria-hidden="true" />
+    <!-- Desktop only (see .about__mark below) — inline (not <img>) so the
+         path can be drawn in on scroll, see the script below. -->
+    <svg class="about__mark" data-reveal-line width="290" height="144" viewBox="0 0 290 144" fill="none" aria-hidden="true">
+      <path
+        class="about__mark-path"
+        d="M0.351562 0.936035C56.0327 21.8855 180.699 79.8457 180.699 126.633C180.699 155.264 111.221 141.996 111.221 118.951C111.221 91.0188 247.96 91.0188 289.352 117.555"
+        stroke="var(--color-green-500)"
+        stroke-width="2"
+      />
+    </svg>
 
     <div class="about__copy">
       <p class="about__text">
@@ -21,12 +29,47 @@ import decorativeMark from "../../assets/startseite/about_decorative_mark.svg";
         noch schnell tanzen lernen wollen.
       </p>
       <p class="about__note">
-        Martin und Romeleen Priebe führen die Schule. Beide ADTV, beide lieber im Saal als im Büro.
+        Martin und Romeleen Priebe führen die Schule.<br />
+        Beide ADTV, beide lieber im Saal als im Büro.
       </p>
       <Button variant="primary" icon="right" href="#">Unser Team</Button>
     </div>
   </div>
 </section>
+
+<script>
+  // Draws the decorative line in from its left end once the section scrolls
+  // into view — a stroke-dashoffset reveal driven by the path's own measured
+  // length (getTotalLength()), so it works regardless of how the artwork
+  // changes. Desktop only (see .about__mark's own display:none below 901px),
+  // so this is a no-op there — the query still finds nothing and returns
+  // early. Progressive enhancement: without JS (or with prefers-reduced-motion)
+  // the line just renders fully drawn — see the CSS.
+  const path = document.querySelector<SVGPathElement>(".about__mark-path");
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  if (path && !reducedMotion) {
+    const length = path.getTotalLength();
+    path.style.strokeDasharray = `${length}`;
+    path.style.strokeDashoffset = `${length}`;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            // Set directly (not via a CSS class) since it must win over the
+            // inline stroke-dashoffset set above — the transition below
+            // still animates this change smoothly.
+            path.style.strokeDashoffset = "0";
+            observer.disconnect();
+          }
+        });
+      },
+      { threshold: 0.4 },
+    );
+    observer.observe(path);
+  }
+</script>
 
 <style>
   .about__grid {
@@ -34,7 +77,10 @@ import decorativeMark from "../../assets/startseite/about_decorative_mark.svg";
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: var(--space-16);
-    align-items: center;
+    /* `start`, not `center` — Figma pins the heading to the row's own top
+       edge (see the metadata: the heading frame's top matches the section's
+       top exactly), it's not vertically centred against the copy column. */
+    align-items: start;
   }
 
   .about__eyebrow {
@@ -50,12 +96,29 @@ import decorativeMark from "../../assets/startseite/about_decorative_mark.svg";
     color: var(--color-grey-900);
   }
 
+  /* Desktop only — client didn't want it competing with the stacked mobile
+     layout below (see the max-width: 900px override further down). */
   .about__mark {
     position: absolute;
-    left: 36%;
-    top: 62%;
+    /* -100px on each axis: sits it in the gap between the heading and the
+       description instead of overlapping the description's text. */
+    left: calc(36% - 100px);
+    top: calc(62% - 100px);
     width: 22%;
+    height: auto;
+    aspect-ratio: 290 / 144;
     pointer-events: none;
+    overflow: visible;
+  }
+
+  .about__mark-path {
+    fill: none;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .about__mark-path {
+      transition: stroke-dashoffset 1s cubic-bezier(0.65, 0, 0.35, 1);
+    }
   }
 
   .about__copy {
@@ -64,6 +127,12 @@ import decorativeMark from "../../assets/startseite/about_decorative_mark.svg";
     align-items: flex-start;
     gap: var(--space-6);
     max-width: 496px;
+    /* Pushes the copy block down from the row's top edge to match Figma
+       (the description starts roughly level with the heading's second
+       line, not flush with the top) — without this, `.about__grid`'s
+       align-items: center leaves the copy's own content (already the
+       taller of the two columns) filling the row from y=0. */
+    padding-top: calc(var(--space-16) + var(--space-20));
   }
 
   .about__text {
@@ -85,10 +154,20 @@ import decorativeMark from "../../assets/startseite/about_decorative_mark.svg";
   @media (max-width: 900px) {
     .about__grid {
       grid-template-columns: 1fr;
+      gap: var(--space-6);
     }
 
+    /* Client asked for the decorative line gone on mobile — it stays on
+       desktop (see .about__mark above). */
     .about__mark {
       display: none;
+    }
+
+    /* The desktop-only top offset (see .about__copy above) exists purely to
+       line the copy up against the two-column heading — meaningless once
+       the columns stack, where it would just add an oversized gap instead. */
+    .about__copy {
+      padding-top: 0;
     }
   }
 </style>

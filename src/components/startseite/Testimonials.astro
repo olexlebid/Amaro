@@ -1,7 +1,12 @@
 ---
-// Google-review style testimonial wall, two rows that scroll gently sideways.
+// Google-review style testimonial wall. Desktop: two rows that scroll gently
+// sideways (marquee). Mobile: a single native horizontally-scrollable/
+// swipeable row with a scroll-position progress bar (Figma mobile frame has
+// no room for two rows, and a passive marquee doesn't work with touch scroll
+// underneath it, so mobile trades the loop for a user-driven swipe).
 // Figma node 563:4012. All 8 quotes are real, verbatim customer reviews.
 import Button from "../Button.astro";
+import TestimonialCard from "./TestimonialCard.astro";
 import starIcon from "../../assets/icons/star.svg";
 import googleLogo from "../../assets/icons/google_reviews_logo.svg";
 
@@ -42,40 +47,54 @@ const rowTwo = [
     author: "Annalena und Amalia, Hip Hop",
   },
 ];
+
+// Mobile shows every real review in one scrollable row instead of splitting
+// them across two looping rows.
+const allTestimonials = [...rowOne, ...rowTwo];
 ---
 
-<section class="testimonials section">
+<section class="testimonials section" data-testimonials-section>
   <div class="container testimonials__header">
     <h2 class="testimonials__heading">Was unsere Kunden sagen</h2>
     <div class="testimonials__actions">
       <div class="testimonials__score">
-        <img src={googleLogo.src} alt="" width="13" height="12" />
-        <div class="testimonials__stars" aria-hidden="true">
-          <img src={starIcon.src} alt="" /><img src={starIcon.src} alt="" /><img src={starIcon.src} alt="" /><img src={starIcon.src} alt="" /><img src={starIcon.src} alt="" />
+        <img src={googleLogo.src} alt="" width="30" height="30" class="testimonials__google-logo" />
+        <div class="testimonials__score-text">
+          <div class="testimonials__stars" aria-hidden="true">
+            <img src={starIcon.src} alt="" /><img src={starIcon.src} alt="" /><img src={starIcon.src} alt="" /><img src={starIcon.src} alt="" /><img src={starIcon.src} alt="" />
+          </div>
+          <span class="testimonials__score-label">4.8 score</span>
         </div>
-        <span class="testimonials__score-label">4.8 score</span>
       </div>
-      <Button variant="tertiary" icon="right" href="#">Mehr Bewertungen auf Google</Button>
+      <Button variant="tertiary" icon="right" href="#">Mehr Bewertungen<span class="testimonials__cta-suffix"> auf Google</span></Button>
     </div>
   </div>
 
-  {[rowOne, rowTwo].map((row, i) => (
-    <div class="testimonials__row" style={i === 1 ? "--direction: reverse" : ""}>
-      <div class="testimonials__track">
-        {[...row, ...row].map((item) => (
-          <article class="testimonial-card">
-            <p class="testimonial-card__quote">{item.quote}</p>
-            <div class="testimonial-card__foot">
-              <div class="testimonial-card__stars" aria-hidden="true">
-                <img src={starIcon.src} alt="" /><img src={starIcon.src} alt="" /><img src={starIcon.src} alt="" /><img src={starIcon.src} alt="" /><img src={starIcon.src} alt="" />
-              </div>
-              <p class="testimonial-card__author">{item.author}</p>
-            </div>
-          </article>
-        ))}
+  <div class="testimonials__desktop">
+    {[rowOne, rowTwo].map((row, i) => (
+      <div class="testimonials__row" style={i === 1 ? "--direction: reverse" : ""}>
+        <div class="testimonials__track">
+          {[...row, ...row].map((item) => (
+            <TestimonialCard quote={item.quote} author={item.author} />
+          ))}
+        </div>
+      </div>
+    ))}
+  </div>
+
+  <div class="testimonials__mobile">
+    <div class="testimonials__mobile-track" data-testimonials-mobile-track>
+      {allTestimonials.map((item) => (
+        <TestimonialCard quote={item.quote} author={item.author} />
+      ))}
+    </div>
+    <div class="container testimonials__mobile-progress-wrap">
+      <div class="testimonials__progress">
+        <div class="testimonials__progress-bar" data-testimonials-progress style={`width:${100 / allTestimonials.length}%; left:0;`}>
+        </div>
       </div>
     </div>
-  ))}
+  </div>
 </section>
 
 <style>
@@ -107,17 +126,25 @@ const rowTwo = [
   .testimonials__score {
     display: flex;
     align-items: center;
-    gap: var(--space-3);
+    gap: var(--space-2);
   }
 
-  .testimonials__stars,
-  .testimonial-card__stars {
+  .testimonials__google-logo {
+    flex-shrink: 0;
+  }
+
+  .testimonials__score-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .testimonials__stars {
     display: flex;
     gap: 2px;
   }
 
-  .testimonials__stars img,
-  .testimonial-card__stars img {
+  .testimonials__stars img {
     width: 14px;
     height: 14px;
   }
@@ -126,6 +153,13 @@ const rowTwo = [
     font-family: var(--font-family-base);
     font-size: 0.75rem;
     color: var(--color-grey-900);
+  }
+
+  /* Mobile-only single scroll row (see .testimonials__mobile below) — hidden
+     on desktop, where the two looping rows in .testimonials__desktop run
+     instead. */
+  .testimonials__mobile {
+    display: none;
   }
 
   .testimonials__row {
@@ -146,43 +180,11 @@ const rowTwo = [
     animation-play-state: paused;
   }
 
-  .testimonial-card {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    gap: var(--space-6);
-    width: 392px;
-    height: 240px;
-    padding: var(--space-6) var(--space-6) var(--space-4);
-    background: var(--color-grey-200);
-    border: 1px solid var(--color-grey-300);
-    border-radius: 16px;
-    flex-shrink: 0;
-  }
-
-  .testimonial-card__quote {
-    font-family: var(--font-family-base);
-    font-weight: var(--font-body-weight);
-    font-size: var(--font-body-400-size);
-    line-height: var(--font-body-400-line);
-    color: var(--color-grey-700);
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-line-clamp: 5;
-    -webkit-box-orient: vertical;
-  }
-
-  .testimonial-card__foot {
-    display: flex;
-    align-items: center;
-    gap: var(--space-4);
-  }
-
-  .testimonial-card__author {
-    font-family: var(--font-family-base);
-    font-weight: var(--font-body-weight);
-    font-size: var(--font-body-100-size);
-    color: var(--color-grey-500);
+  /* Set by the script below via IntersectionObserver — the marquee has no
+     reason to keep animating (and compositing two infinite-loop rows)
+     while the section is scrolled out of view. */
+  .testimonials.is-offscreen .testimonials__track {
+    animation-play-state: paused;
   }
 
   @keyframes marquee {
@@ -203,9 +205,114 @@ const rowTwo = [
   }
 
   @media (max-width: 900px) {
-    .testimonials__actions {
-      flex-direction: column;
-      align-items: flex-start;
+    .testimonials__cta-suffix {
+      display: none;
+    }
+
+    .testimonials__desktop {
+      display: none;
+    }
+
+    .testimonials__mobile {
+      display: block;
+    }
+
+    .testimonials__mobile-track {
+      display: flex;
+      gap: var(--space-4);
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      padding-inline: clamp(1rem, 4vw, var(--space-6));
+    }
+
+    .testimonials__mobile-track::-webkit-scrollbar {
+      display: none;
+    }
+
+    .testimonials__mobile-progress-wrap {
+      margin-top: var(--space-6);
+    }
+
+    .testimonials__progress {
+      position: relative;
+      height: 1px;
+      background: var(--color-grey-300);
+    }
+
+    /* A scrollbar-style thumb, not a growing "how far scrolled" fill: width
+       is how much of the row is visible at once (clientWidth/scrollWidth),
+       left is the scroll position — so it reads correctly even at rest
+       (scrollLeft 0), where a growing fill would render as empty. */
+    .testimonials__progress-bar {
+      position: absolute;
+      top: 0;
+      height: 1px;
+      background: var(--color-grey-900);
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .testimonials__progress-bar {
+        /* Smooths over the gap between individual scroll-driven updates so
+           the thumb reads as continuous rather than ticking in small steps. */
+        transition: left 0.15s linear;
+      }
     }
   }
 </style>
+
+<script>
+  // Pauses the two infinite marquee rows while the section is scrolled out
+  // of view — cheap on their own (transform-only), but no reason to keep
+  // compositing an infinite animation nobody's looking at. Reduced-motion
+  // visitors already get `animation: none` from the CSS above, so there's
+  // nothing for this to do there. Runs regardless of viewport width — a
+  // no-op below the mobile breakpoint, where the marquee rows are hidden
+  // rather than removed from the DOM.
+  const section = document.querySelector<HTMLElement>("[data-testimonials-section]");
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  if (section && !reducedMotion) {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        section.classList.toggle("is-offscreen", !entry.isIntersecting);
+      },
+      { threshold: 0 },
+    );
+    observer.observe(section);
+  }
+
+  // Mobile progress bar: a scrollbar-style thumb for the native
+  // horizontally-scrollable row (see .testimonials__mobile-track) — width is
+  // the visible fraction of the row, left is the scroll position.
+  const mobileTrack = document.querySelector<HTMLElement>("[data-testimonials-mobile-track]");
+  const progressBar = document.querySelector<HTMLElement>("[data-testimonials-progress]");
+
+  if (mobileTrack && progressBar) {
+    const updateProgress = () => {
+      const widthFraction = Math.min(1, mobileTrack.clientWidth / mobileTrack.scrollWidth);
+      const maxScroll = mobileTrack.scrollWidth - mobileTrack.clientWidth;
+      const leftFraction = maxScroll > 0 ? mobileTrack.scrollLeft / mobileTrack.scrollWidth : 0;
+      progressBar.style.width = `${widthFraction * 100}%`;
+      progressBar.style.left = `${leftFraction * 100}%`;
+    };
+
+    let ticking = false;
+    mobileTrack.addEventListener(
+      "scroll",
+      () => {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(() => {
+          updateProgress();
+          ticking = false;
+        });
+      },
+      { passive: true },
+    );
+
+    window.addEventListener("resize", updateProgress);
+    updateProgress();
+  }
+</script>

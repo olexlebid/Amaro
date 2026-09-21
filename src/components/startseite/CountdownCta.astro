@@ -1,77 +1,166 @@
 ---
 // "Zähl einmal mit" — playful press-and-hold CTA inside a photo collage.
-// Figma node 563:4142. The 8 template poster images in Figma weren't real
-// Amaro photos, so this reuses real gallery/class photos instead.
+// Figma node 563:4142 (mosaic) / 649:3343 (the 3-state interaction: mosaic
+// "docked" on load, mosaic "flown apart" once the section centers in the
+// viewport, and the finished text+button reveal after the hold completes).
+// The 8 template poster images in Figma weren't real Amaro photos. Tile 5
+// (gallery02) is the one real Amaro photo kept in this mosaic; the rest are
+// curated stock photos filling out the mosaic until more real Amaro photos
+// exist for these slots.
 import { Image } from "astro:assets";
-import gallery01 from "../../assets/startseite/gallery_01.jpg";
+import Button from "../Button.astro";
 import gallery02 from "../../assets/startseite/gallery_02.jpg";
-import gallery03 from "../../assets/startseite/gallery_03.jpg";
-import gallery04 from "../../assets/startseite/gallery_04.png";
-import kindertanz from "../../assets/startseite/kindertanz_giphop.jpg";
+import ctaFreundeEvent from "../../assets/startseite/cta_freunde_event.jpg";
+import ctaTeamBuehne from "../../assets/startseite/cta_team_buehne.jpg";
+import ctaPaarSprung from "../../assets/startseite/cta_paar_sprung.jpg";
+import ctaTeamAuftritt from "../../assets/startseite/cta_team_auftritt.jpg";
+import ctaBreakdanceKick from "../../assets/startseite/cta_breakdance_kick.jpg";
+import ctaBreakdanceSw from "../../assets/startseite/cta_breakdance_sw.jpg";
+import ctaStreetstyleGruppe from "../../assets/startseite/cta_streetstyle_gruppe.jpg";
 
+// fly: how far/how much extra rotation each tile gets once the section
+// centers in the viewport (Figma's "step2" frame) — move as % of the mosaic
+// box's own width/height, rotate as a delta added on top of the baked
+// --rotate above. Mostly derived from the actual px offsets between Figma's
+// step1 ("docked", node 649:3248) and step2 ("flown apart", node 649:3270)
+// frames, per tile, converted to % of that frame's 1440x800 size so it
+// scales with the box instead of staying a fixed pixel amount — except
+// tiles 2 and 6 below, which Figma's own 8 tiles don't have a positional
+// match for (every remaining Figma tile after matching the other 6 by
+// position+rotation was on the opposite side from these two), so their
+// fly values are hand-picked instead, just pointed outward/away from the
+// button like their neighbours rather than back across the center.
+// Tiles 4 ("kindertanz" @ 45/30) and 7 ("gallery04" @ 55/84) also shed a few
+// points of size (24%→20%, 18%→16%) — otherwise, pushed this far out, their
+// own height (tiles are square, sized off the mosaic box's *width*) would
+// need a taller stage than is worth the vertical section rhythm below to
+// still avoid clipping (see .countdown-cta__stage's min-height).
 const mosaic = [
-  { src: gallery03, top: "0%", left: "18%", size: "18%", rotate: "-8.6deg" },
-  { src: kindertanz, top: "4%", left: "68%", size: "17%", rotate: "0deg" },
-  { src: gallery01, top: "2%", left: "0%", size: "20%", rotate: "-9.6deg" },
-  { src: gallery04, top: "20%", left: "83%", size: "17%", rotate: "7.6deg" },
-  { src: gallery02, top: "47%", left: "0%", size: "20%", rotate: "5.6deg" },
-  { src: kindertanz, top: "45%", left: "30%", size: "24%", rotate: "16.5deg" },
-  { src: gallery03, top: "52%", left: "62%", size: "20%", rotate: "-9.6deg" },
-  { src: gallery04, top: "55%", left: "84%", size: "18%", rotate: "5.2deg" },
+  { src: ctaTeamAuftritt, top: "0%", left: "18%", size: "18%", rotate: "-8.6deg", flyX: -19.83, flyY: -8.37, flyRotate: -11.68 },
+  { src: ctaBreakdanceKick, top: "4%", left: "68%", size: "17%", rotate: "0deg", flyX: 17.37, flyY: -12.12, flyRotate: 37.06 },
+  { src: ctaBreakdanceSw, top: "2%", left: "0%", size: "20%", rotate: "-9.6deg", flyX: -13, flyY: -10.4, flyRotate: -14 },
+  { src: ctaStreetstyleGruppe, top: "20%", left: "83%", size: "17%", rotate: "7.6deg", flyX: 11.87, flyY: -19.53, flyRotate: -21.52 },
+  { src: gallery02, top: "47%", left: "0%", size: "20%", rotate: "5.6deg", flyX: -13.17, flyY: 18.73, flyRotate: -32.5 },
+  { src: ctaFreundeEvent, top: "45%", left: "30%", size: "20%", rotate: "16.5deg", flyX: -27.92, flyY: 19.77, flyRotate: -17.07 },
+  { src: ctaTeamBuehne, top: "52%", left: "62%", size: "20%", rotate: "-9.6deg", flyX: 23.4, flyY: 13, flyRotate: 22.58 },
+  { src: ctaPaarSprung, top: "55%", left: "84%", size: "16%", rotate: "5.2deg", flyX: 15.86, flyY: 18.03, flyRotate: -20.37 },
 ];
 ---
 
 <section class="countdown-cta section">
-  <div class="container countdown-cta__stage">
+  <div class="container countdown-cta__stage" data-countdown-stage>
     <div class="countdown-cta__mosaic" aria-hidden="true">
       {mosaic.map((tile) => (
         <div
           class="countdown-cta__tile"
+          data-countdown-tile
+          data-fly-x={tile.flyX}
+          data-fly-y={tile.flyY}
+          data-fly-rotate={tile.flyRotate}
           style={`top:${tile.top}; left:${tile.left}; width:${tile.size}; --rotate:${tile.rotate}`}
         >
-          <Image src={tile.src} alt="" width={260} height={260} />
+          <Image src={tile.src} alt="" width={260} height={260} densities={[1, 2]} format="avif" />
         </div>
       ))}
     </div>
 
-    <div class="countdown-cta__content">
+    <div class="countdown-cta__content" data-countdown-content>
       <p class="countdown-cta__eyebrow u-upper-200">Mitmachen</p>
       <h2 class="countdown-cta__heading">Zähl einmal mit</h2>
       <p class="countdown-cta__subheading">Länger dauert der schwerste Teil nicht</p>
 
-      <a href="#" class="countdown-button" data-countdown-button data-hold-seconds="5">
-        <!-- TODO: Nimbus Cloud — completing the hold should open the Probestunde booking flow -->
-        <svg class="countdown-button__ring" viewBox="0 0 196 196" aria-hidden="true">
-          <circle class="countdown-button__ring-track" cx="98" cy="98" r="89" />
-          <circle class="countdown-button__ring-progress" cx="98" cy="98" r="89" data-countdown-progress />
-        </svg>
-        <span class="countdown-button__number" data-countdown-number>5</span>
-      </a>
-      <p class="countdown-cta__hint">[gedrückt halten]</p>
+      <!-- Both states occupy the same grid cell (see CSS) and crossfade —
+           the hold widget never gets replaced/removed, just faded + scaled
+           out, so completing the hold can't cause a layout jump. -->
+      <div class="countdown-cta__switch">
+        <div class="countdown-cta__hold">
+          <a href="#" class="countdown-button" data-countdown-button data-hold-seconds="5">
+            <!-- TODO: Nimbus Cloud — completing the hold should open the Probestunde booking flow -->
+            <span class="countdown-button__glow" data-countdown-glow aria-hidden="true"></span>
+            <svg class="countdown-button__ring" viewBox="0 0 196 196" aria-hidden="true">
+              <circle class="countdown-button__ring-track" cx="98" cy="98" r="89" />
+              <circle class="countdown-button__ring-progress" cx="98" cy="98" r="89" data-countdown-progress />
+            </svg>
+            <span class="countdown-button__number" data-countdown-number>5</span>
+          </a>
+          <p class="countdown-cta__hint">[gedrückt halten]</p>
+        </div>
+
+        <div class="countdown-cta__result">
+          <p class="countdown-cta__result-text" data-countdown-result-text>Fertig. Genau so weit seid ihr am ersten Abend auch. Den Rest zeigt euch jemand.</p>
+          <Button variant="primary" icon="right" href="#" class="countdown-cta__result-button">Kostenlose Probestunde</Button>
+        </div>
+      </div>
     </div>
   </div>
 </section>
 
 <script>
-  // Press-and-hold countdown: filling the ring over N seconds "counts you in".
-  // Falls back to an immediate click for keyboard/reduced-motion users.
+  // Press-and-hold countdown: filling the ring "counts you in", then swaps
+  // the ring for the finished text + booking button (see the CSS crossfade
+  // on .countdown-cta__switch) instead of redirecting immediately — the
+  // actual booking link lives on that button now (see its TODO).
+  import gsap from "gsap";
+  import { SplitText } from "gsap/SplitText";
+
+  gsap.registerPlugin(SplitText);
+
   const button = document.querySelector<HTMLAnchorElement>("[data-countdown-button]");
   const progress = document.querySelector<SVGCircleElement>("[data-countdown-progress]");
   const numberEl = document.querySelector<HTMLElement>("[data-countdown-number]");
-  if (button && progress && numberEl) {
-    const holdSeconds = Number(button.dataset.holdSeconds ?? "5");
+  const glow = document.querySelector<HTMLElement>("[data-countdown-glow]");
+  const content = document.querySelector<HTMLElement>("[data-countdown-content]");
+  const resultText = document.querySelector<HTMLElement>("[data-countdown-result-text]");
+  const resultButton = document.querySelector<HTMLElement>(".countdown-cta__result-button");
+  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // Words start pre-hidden (via GSAP, not CSS) so the plain/no-JS/reduced-
+  // motion fallback — the result text just appearing with the rest of
+  // .countdown-cta__result's own opacity crossfade below — still works;
+  // only once SplitText has actually split the copy into words do we hide
+  // them and take over their entrance with the stagger.
+  let resultWords: Element[] | null = null;
+  if (resultText && !prefersReducedMotion) {
+    resultWords = SplitText.create(resultText, { type: "words" }).words;
+    gsap.set(resultWords, { opacity: 0, y: 24 });
+    if (resultButton) gsap.set(resultButton, { opacity: 0, y: 16 });
+  }
+
+  function revealResult() {
+    if (!resultWords) return;
+    const tl = gsap.timeline();
+    tl.to(resultWords, { opacity: 1, y: 0, duration: 0.7, stagger: 0.06, ease: "power2.out" });
+    if (resultButton) {
+      tl.to(resultButton, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, "-=0.35");
+    }
+  }
+
+  if (button && progress && numberEl && content) {
+    // The "5" is fixed by the design (Figma shows a 5-count ring), but the
+    // client asked for a noticeably shorter hold — so the ring/number still
+    // step 5→1 for the full display, while the real hold only takes 75% of
+    // that many seconds (~25% shorter, per feedback) to complete.
+    const displaySeconds = Number(button.dataset.holdSeconds ?? "5");
+    const holdSeconds = displaySeconds * 0.75;
     const circumference = 2 * Math.PI * 89;
     progress.style.strokeDasharray = `${circumference}`;
     progress.style.strokeDashoffset = `${circumference}`;
 
-    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     let frame: number;
     let startTime: number;
 
     function reset() {
       cancelAnimationFrame(frame);
+      if (content!.classList.contains("is-complete")) return;
       progress!.style.strokeDashoffset = `${circumference}`;
-      numberEl!.textContent = String(holdSeconds);
+      numberEl!.textContent = String(displaySeconds);
+      if (glow) glow.style.opacity = "0";
+    }
+
+    function complete() {
+      cancelAnimationFrame(frame);
+      content!.classList.add("is-complete");
+      revealResult();
     }
 
     function tick(timestamp: number) {
@@ -79,26 +168,93 @@ const mosaic = [
       const elapsed = (timestamp - startTime) / 1000;
       const ratio = Math.min(elapsed / holdSeconds, 1);
       progress!.style.strokeDashoffset = `${circumference * (1 - ratio)}`;
-      numberEl!.textContent = String(Math.max(1, holdSeconds - Math.floor(elapsed)));
+      numberEl!.textContent = String(Math.max(1, displaySeconds - Math.floor(ratio * displaySeconds)));
+      // Green glow builds from faint to fully bright as the hold progresses
+      // — an extra "charging up" cue behind the ring alongside its fill.
+      if (glow) glow.style.opacity = String(ratio);
       if (ratio < 1) {
         frame = requestAnimationFrame(tick);
       } else {
-        window.location.href = button!.href;
+        complete();
       }
     }
 
-    function startHold(event: Event) {
+    function startHold() {
       if (prefersReducedMotion) return;
-      event.preventDefault();
       startTime = 0;
       frame = requestAnimationFrame(tick);
     }
+
+    // The button is styled as a link but never really navigates on its own —
+    // completing it swaps in the real booking button instead (see above).
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      if (prefersReducedMotion) complete();
+    });
 
     button.addEventListener("pointerdown", startHold);
     button.addEventListener("pointerup", reset);
     button.addEventListener("pointerleave", reset);
     button.addEventListener("keyup", (event) => {
-      if (event.key === "Enter" || event.key === " ") reset();
+      if (event.key === "Enter" || event.key === " ") complete();
+    });
+  }
+</script>
+
+<script>
+  // Mosaic "fly apart" — move+rotate every tile outward, scrubbed directly
+  // to scroll position (not an autoplay timer) so the motion tracks the
+  // scroll itself: tiles are still docked as the section enters, and fully
+  // flown apart (Figma's step2) by the time it's centered in the viewport.
+  // Same GSAP + ScrollTrigger engine as Gallery.astro/ProgramsCarousel.astro
+  // — `scrub: true` ties the tween 1:1 to the already-Lenis-smoothed scroll
+  // position rather than adding a second, separate easing on top of it (see
+  // Gallery.astro's own comment on that). Each tile's rotation delta is
+  // applied as "+=" so GSAP reads its baked CSS --rotate as the tween's
+  // start value (same trick Gallery.astro's card tilt uses).
+  import gsap from "gsap";
+  import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  const stage = document.querySelector<HTMLElement>("[data-countdown-stage]");
+  const tiles = Array.from(document.querySelectorAll<HTMLElement>("[data-countdown-tile]"));
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  if (stage && tiles.length && !reducedMotion) {
+    // Matches the mosaic's own 900px breakpoint (hidden below it) — no point
+    // registering this on viewports where the mosaic never renders.
+    ScrollTrigger.matchMedia({
+      "(min-width: 901px)": () => {
+        const tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: stage,
+            // Starts as the section enters from below, finishes exactly
+            // when it's centered — matches the client's reference screenshot
+            // (mosaic already fully scattered once the section is centered).
+            start: "top bottom",
+            end: "center center",
+            scrub: true,
+            invalidateOnRefresh: true,
+          },
+        });
+
+        tiles.forEach((tile) => {
+          const flyX = parseFloat(tile.dataset.flyX ?? "0");
+          const flyY = parseFloat(tile.dataset.flyY ?? "0");
+          const flyRotate = tile.dataset.flyRotate ?? "0";
+          tl.to(
+            tile,
+            {
+              x: () => stage.getBoundingClientRect().width * (flyX / 100),
+              y: () => stage.getBoundingClientRect().height * (flyY / 100),
+              rotation: `+=${flyRotate}`,
+              ease: "none",
+            },
+            0,
+          );
+        });
+      },
     });
   }
 </script>
@@ -106,11 +262,26 @@ const mosaic = [
 <style>
   .countdown-cta {
     overflow: hidden;
+    /* Extra clearance on top of .section's default rhythm (base.css) — this
+       section's flown-apart mosaic tiles bleed well past the content box
+       both above and below the centered heading/button, so it needs more
+       breathing room than a plain text section: +100px from Faq above, and
+       matching space before Footer below so the tiles' lower corners don't
+       run into it (see the stage's own min-height for the rest of that
+       fix). Per client feedback on both. */
+    padding-top: calc(clamp(3rem, 8vh, var(--space-19)) + 100px);
+    padding-bottom: calc(clamp(3rem, 8vh, var(--space-19)) + 100px);
   }
 
   .countdown-cta__stage {
     position: relative;
-    min-height: 560px;
+    /* Tall enough that even the furthest-flown tiles (see the mosaic array
+       above) stay inside this box instead of being clipped by .countdown-cta's
+       overflow: hidden — tiles are square and sized off the box's *width*
+       (not height), so at this width (~1312px container) their own height
+       can be a large fraction of a shorter box once a tile's top offset
+       pushes it toward 60-75% down. */
+    min-height: 820px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -170,6 +341,58 @@ const mosaic = [
     margin-bottom: var(--space-6);
   }
 
+  /* Both children sit in the same grid cell so the wrapper's size follows
+     whichever is currently visible/tallest, and swapping between them can't
+     shift the layout underneath (heading/subheading above stay put). */
+  .countdown-cta__switch {
+    position: relative;
+    display: grid;
+  }
+
+  .countdown-cta__hold,
+  .countdown-cta__result {
+    grid-area: 1 / 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .countdown-cta__result {
+    align-self: center;
+    gap: var(--space-5);
+    opacity: 0;
+    transform: scale(0.94);
+    pointer-events: none;
+  }
+
+  .countdown-cta__result-text {
+    max-width: 472px;
+    font-family: var(--font-family-base);
+    font-weight: var(--font-title-weight);
+    font-size: var(--font-title-100-size);
+    line-height: var(--font-title-100-line);
+    color: var(--color-grey-900);
+  }
+
+  .countdown-cta__content.is-complete .countdown-cta__hold {
+    opacity: 0;
+    transform: scale(0.85);
+    pointer-events: none;
+  }
+
+  .countdown-cta__content.is-complete .countdown-cta__result {
+    opacity: 1;
+    transform: scale(1);
+    pointer-events: auto;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .countdown-cta__hold,
+    .countdown-cta__result {
+      transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+  }
+
   .countdown-button {
     position: relative;
     display: flex;
@@ -180,6 +403,26 @@ const mosaic = [
     border-radius: 50%;
     background: var(--color-grey-100);
     border: 1px solid var(--color-grey-20p);
+  }
+
+  /* Sits behind the button's own opaque background (first in DOM order, no
+     ring/number sibling has a z-index to jump over it) — so it only reads
+     as a halo bleeding out past the circle's edge, brightening with hold
+     progress via the opacity the script above drives per frame. */
+  .countdown-button__glow {
+    position: absolute;
+    inset: -56px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--color-green-400) 0%, var(--color-green-600) 40%, transparent 72%);
+    filter: blur(28px);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .countdown-button__glow {
+      transition: opacity 0.1s linear;
+    }
   }
 
   .countdown-button__ring {
@@ -226,6 +469,22 @@ const mosaic = [
   @media (max-width: 900px) {
     .countdown-cta__mosaic {
       display: none;
+    }
+
+    /* The +100px desktop clearance above (see .countdown-cta) exists only
+       for the flown-apart mosaic tiles bleeding past the content box — the
+       mosaic itself is hidden on mobile (just above), so that extra space
+       is now just dead air above/below the centered heading and button. */
+    .countdown-cta {
+      padding-top: 80px;
+      padding-bottom: 80px;
+    }
+
+    /* Same reasoning as the section padding above: 820px exists purely to
+       give the desktop mosaic tiles room without clipping — with the
+       mosaic hidden, the stage should just hug its centered content. */
+    .countdown-cta__stage {
+      min-height: auto;
     }
   }
 </style>
