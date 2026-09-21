@@ -55,8 +55,10 @@ import glow from "../../assets/startseite/hero_decorative_glow.svg";
 <style>
   .hero {
     position: relative;
-    height: 780px;
-    max-height: 100vh;
+    /* Always fills the viewport on desktop (Figma's 780px-tall hero frame is
+       a proportion reference at 1440px width, not a fixed pixel target —
+       see the heading font-size below, which scales off this same 100vh). */
+    height: 100vh;
     min-height: 560px;
     overflow: hidden;
     display: flex;
@@ -131,9 +133,12 @@ import glow from "../../assets/startseite/hero_decorative_glow.svg";
 
   @media (min-width: 640px) {
     .hero__content {
-      /* Figma hero title inset: 64px left, 56px bottom (fixed, not fluid). */
+      /* Figma hero title inset: 64px left, matched on the bottom too (not the
+         nominal 56px Figma value) — the "est. 2006" badge's own line box
+         adds a few px of slack below the heading's tight line-height, so a
+         touch less padding here lands the *visual* gap even with the side inset. */
       padding-inline-start: var(--space-16); /* 64px */
-      padding-bottom: 3.5rem; /* 56px — exact Figma value, not on the 4/8px scale */
+      padding-bottom: 3.125rem; /* 50px */
     }
   }
 
@@ -190,6 +195,16 @@ import glow from "../../assets/startseite/hero_decorative_glow.svg";
     line-height: var(--font-title-800-line);
     color: var(--color-grey-100);
     max-width: 20ch;
+  }
+
+  @media (min-width: 640px) {
+    .hero__heading {
+      /* Figma: 100px heading in a 780px-tall hero frame (1440 width) = 12.82vh.
+         Since .hero is 100vh, this keeps the heading at the same proportion
+         of the section on any desktop viewport height, instead of pinning it
+         to the 100px the reference frame happened to use. */
+      font-size: clamp(3.5rem, 12.82vh, 11.25rem);
+    }
   }
 
   /* Word-by-word fade-up (JS-enhanced, GSAP SplitText — see script below,
