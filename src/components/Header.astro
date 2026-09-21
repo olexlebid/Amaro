@@ -111,9 +111,11 @@ const uberUnsItems = [
 
       <div class="header__cta">
         <a class="header__login" href="#">Login</a>
-        <a class="header__cta-button" href="#"><!-- TODO: Nimbus Cloud -->Probestunde</a>
+        <a class="header__cta-button" href="#">
+          <!-- TODO: Nimbus Cloud -->
+          Probestunde
+        </a>
       </div>
-
       <!-- Tanzkurse mega-menu -->
       <div class="header__dropdown" id="dropdown-tanzkurse" data-dropdown-panel="tanzkurse" hidden>
         <div class="header__dropdown-inner">
@@ -163,7 +165,6 @@ const uberUnsItems = [
           </div>
         </div>
       </div>
-
       <!-- Über uns dropdown -->
       <div class="header__dropdown" id="dropdown-ueber-uns" data-dropdown-panel="ueber-uns" hidden>
         <div class="header__dropdown-inner">
@@ -184,7 +185,6 @@ const uberUnsItems = [
           </ul>
         </div>
       </div>
-
       <!-- Mobile-only: a flex child of the navbar itself (not a container
            sibling) so it shares the exact same pill background as the logo,
            below ~960px, instead of needing its own separate one. -->
@@ -201,7 +201,6 @@ const uberUnsItems = [
         <span class="header__burger-bar"></span>
       </button>
     </nav>
-
     <!-- Mobile menu panel — a flex child of header__container so it inherits
          the same container inset as the navbar row above it, wrapping onto
          its own line via flex-basis: 100% below. -->
@@ -786,6 +785,8 @@ const uberUnsItems = [
     list-style: none;
     margin: 0;
     padding: 0;
+    row-gap: var(--space-2);
+    column-gap: var(--space-2);
   }
 
   .tanzkurse-card__tag {
