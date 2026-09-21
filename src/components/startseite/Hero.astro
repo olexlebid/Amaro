@@ -10,14 +10,22 @@ import glow from "../../assets/startseite/hero_decorative_glow.svg";
 
 <section class="hero">
   <div class="hero__media">
-    <Image src={heroBg} alt="" role="presentation" widths={[768, 1440, 2160]} sizes="100vw" />
+    <Image
+      src={heroBg}
+      alt=""
+      role="presentation"
+      widths={[768, 1440, 2160]}
+      sizes="100vw"
+      loading="eager"
+      fetchpriority="high"
+    />
     <video
       class="hero__video"
       autoplay
       muted
       loop
       playsinline
-      preload="auto"
+      preload="metadata"
       poster={heroBg.src}
       aria-hidden="true"
       tabindex="-1"
@@ -268,13 +276,17 @@ import glow from "../../assets/startseite/hero_decorative_glow.svg";
 
 <script>
   // Fade the looping hero video in once it can actually play; the static photo
-  // (also the video's poster) stays visible under it until then. Users who
-  // prefer reduced motion never get the video at all — the CSS hides it and
-  // this skips loading it too.
+  // (also the video's poster) stays visible under it. Users who
+  // prefer reduced motion, or who are on a metered/slow connection
+  // (Save-Data on, or effectiveType 2g/slow-2g), never get the video at all
+  // — the CSS hides it and this skips loading it too.
   const heroVideo = document.querySelector<HTMLVideoElement>(".hero__video");
+  const connection = (navigator as any).connection;
+  const isSlowConnection =
+    connection && (connection.saveData || ["slow-2g", "2g"].includes(connection.effectiveType));
 
   if (heroVideo) {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || isSlowConnection) {
       // Drop it from the DOM so the browser never fetches the video file.
       heroVideo.remove();
     } else {
