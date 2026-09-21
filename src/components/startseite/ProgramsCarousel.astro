@@ -6,70 +6,26 @@
 // Tanzangebot categories). The second Figma slide ("Masterschaft") is an
 // unedited duplicate of this one — same photo, same age tags, same
 // description. `href` below is a placeholder ("#") until each course gets
-// its own page, same convention as Header.astro. Real per-course
-// `ageTags`/`description` copy still needs to be drafted and approved — the
-// 4 non-Kindertanz slides below reuse Figma's one drafted set as a stand-in.
-import { Image } from "astro:assets";
+// its own page, same convention as Header.astro.
+//
+// Content comes from the `courses` collection (src/content/courses/*.json,
+// schema in src/content.config.ts) — one file per course, edited by me via
+// Claude per CLAUDE.md §6.2, not registered in Keystatic.
+import { getCollection } from "astro:content";
+import { Picture } from "astro:assets";
 import Button from "../Button.astro";
-import kindertanz from "../../assets/startseite/kindertanz_giphop.jpg";
-import masterclass from "../../assets/startseite/programs_masterclass.jpg";
-import hochzeitstanz from "../../assets/startseite/programs_hochzeitstanz.jpg";
-import gesellschaftstanz from "../../assets/startseite/programs_gesellschaftstanz.jpg";
-import schuelerkurse from "../../assets/startseite/programs_schuelerkurse.jpg";
 
-const placeholderTags = ["Hip-Hop Masterclass", "Commercial Dance", "Urban Choreo"];
-const placeholderDescription = "Intensivtraining mit Gasttrainern, für alle mit Turnierambitionen.";
-
-const slides = [
-  {
-    heading: "Kindertanz & Hip-Hop",
-    image: kindertanz,
-    alt: "Kinder tanzen Hip-Hop im Kurs",
-    href: "#",
-    ageTags: [
-      "Mini Kids (3+)",
-      "Kids (6+)",
-      "Junioren (12+)",
-      "Adults (16+)",
-      "Classic",
-    ],
-    description:
-      "Von den ersten Tanzschritten mit 3 Jahren bis zur eigenen Streetdance-Crew: für jedes Alter der passende Rhythmus.",
-  },
-  {
-    heading: "Masterclass",
-    image: masterclass,
-    alt: "Hip-Hop-Team trainiert intensiv im Bühnenlicht",
-    href: "#",
-    ageTags: placeholderTags,
-    description: placeholderDescription,
-  },
-  {
-    heading: "Hochzeitstanz",
-    image: hochzeitstanz,
-    alt:
-      "Eure erste gemeinsame Choreografie, in wenigen Wochen einstudiert, ganz ohne Lampenfieber.",
-    href: "#",
-    ageTags: placeholderTags,
-    description: placeholderDescription,
-  },
-  {
-    heading: "Gesellschaftstanz",
-    image: gesellschaftstanz,
-    alt: "Tanzpaare beim Gesellschaftstanz in stimmungsvollem Ambiente",
-    href: "#",
-    ageTags: placeholderTags,
-    description: placeholderDescription,
-  },
-  {
-    heading: "Schülerkurse",
-    image: schuelerkurse,
-    alt: "Jugendliche tanzen ausgelassen im Schülerkurs",
-    href: "#",
-    ageTags: placeholderTags,
-    description: placeholderDescription,
-  },
-];
+const courses = await getCollection("courses");
+const slides = courses
+  .sort((a, b) => a.data.order - b.data.order)
+  .map((course) => ({
+    heading: course.data.title,
+    image: course.data.image,
+    alt: course.data.imageAlt,
+    href: course.data.href,
+    ageTags: course.data.ageTags,
+    description: course.data.description,
+  }));
 ---
 
 <section class="programs section">
@@ -79,7 +35,7 @@ const slides = [
         {slides.map((slide) => (
           <article class="program-slide" data-programs-slide>
             <a class="program-slide__media" data-programs-media href={slide.href} aria-label={`Mehr zu ${slide.heading}`}>
-              <Image src={slide.image} alt={slide.alt} width={520} height={420} densities={[1, 2]} format="avif" />
+              <Picture src={slide.image} alt={slide.alt} width={520} height={420} densities={[1, 2]} formats={["avif", "webp"]} fallbackFormat="webp" />
             </a>
             <h2 class="program-slide__heading" data-programs-heading>{slide.heading}</h2>
             <div class="program-slide__details">

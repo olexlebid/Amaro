@@ -1,0 +1,9 @@
+{
+  "title": "Schülerkurse",
+  "order": 5,
+  "image": "../../assets/startseite/programs_schuelerkurse.jpg",
+  "imageAlt": "Jugendliche tanzen ausgelassen im Schülerkurs",
+  "ageTags": ["Grundkurs", "Fortgeschrittenenkurs", "Bronzekurs", "Clubtanz"],
+  "description": "Grundkurs, Bronzeball und der erste Tanz vor dem Abiball.",
+  "href": "#"
+}
