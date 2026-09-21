@@ -7,7 +7,7 @@
 // (gallery02) is the one real Amaro photo kept in this mosaic; the rest are
 // curated stock photos filling out the mosaic until more real Amaro photos
 // exist for these slots.
-import { Image } from "astro:assets";
+import { Picture } from "astro:assets";
 import Button from "../Button.astro";
 import gallery02 from "../../assets/startseite/gallery_02.jpg";
 import ctaFreundeEvent from "../../assets/startseite/cta_freunde_event.jpg";
@@ -59,7 +59,7 @@ const mosaic = [
           data-fly-rotate={tile.flyRotate}
           style={`top:${tile.top}; left:${tile.left}; width:${tile.size}; --rotate:${tile.rotate}`}
         >
-          <Image src={tile.src} alt="" width={260} height={260} densities={[1, 2]} format="avif" />
+          <Picture src={tile.src} alt="" width={260} height={260} densities={[1, 2]} formats={["avif", "webp"]} fallbackFormat="webp" />
         </div>
       ))}
     </div>

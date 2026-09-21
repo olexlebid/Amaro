@@ -3,7 +3,7 @@
 // desktop scroll behaviour (pin + horizontal scrub, ending on the Instagram
 // card centered) ports papertiger.com/agency's "about-team" section — see
 // the script below for how that reference was reverse-engineered.
-import { Image } from "astro:assets";
+import { Picture } from "astro:assets";
 import Button from "../Button.astro";
 import InstagramIcon from "../icons/InstagramIcon.astro";
 import gallery02 from "../../assets/startseite/gallery_02.jpg";
@@ -41,7 +41,7 @@ const photos = [
     <div class="gallery__row" data-gallery-track>
       {photos.map((photo) => (
         <div class="gallery__card" style={`--rotate: ${photo.rotate}; --offset-y: ${photo.offsetY}`}>
-          <Image src={photo.src} alt={photo.alt} width={503} height={779} densities={[1, 2]} format="avif" />
+          <Picture src={photo.src} alt={photo.alt} width={503} height={779} densities={[1, 2]} formats={["avif", "webp"]} fallbackFormat="webp" />
         </div>
       ))}
 
@@ -66,7 +66,7 @@ const photos = [
     <div class="gallery__grid">
       {photos.map((photo) => (
         <div class="gallery__grid-cell">
-          <Image src={photo.src} alt={photo.alt} width={364} height={564} densities={[1, 2]} format="avif" />
+          <Picture src={photo.src} alt={photo.alt} width={364} height={564} densities={[1, 2]} formats={["avif", "webp"]} fallbackFormat="webp" />
         </div>
       ))}
     </div>
