@@ -22,3 +22,6 @@ process_guide.md
 
 # Logs
 npm-debug.log*
+
+# Netlify local build/deploy metadata
+.netlify/

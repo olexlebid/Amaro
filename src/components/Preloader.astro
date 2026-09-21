@@ -178,9 +178,19 @@
                   if (ctx) {
                     player.addEventListener("render", () => punchHoles(ctx, canvas));
                   }
-                  player.addEventListener("complete", () => resolve());
-                  player.addEventListener("loadError", () => resolve());
-                  player.addEventListener("renderError", () => resolve());
+                  // Tears down the player's own ResizeObserver before reveal()
+                  // later collapses the canvas to 0×0 (via `root.hidden = true`)
+                  // — left running, that observer keeps reacting to any later
+                  // layout change (window resize, other sections' own pin
+                  // spacers) and throws trying to construct an ImageData for
+                  // a zero-size canvas.
+                  const finish = () => {
+                    player.destroy();
+                    resolve();
+                  };
+                  player.addEventListener("complete", finish);
+                  player.addEventListener("loadError", finish);
+                  player.addEventListener("renderError", finish);
                 })
             )
             .catch(() => undefined);

@@ -125,7 +125,12 @@ const uberUnsItems = [
                   <div class="tanzkurse-card__head">
                     <span class="tanzkurse-card__badge" aria-hidden="true"><DropdownIcon name={item.icon} /></span>
                     <span class="tanzkurse-card__title">{item.title}</span>
-                    <span class="tanzkurse-card__arrow"><ArrowIcon size={16} /></span>
+                    <span class="tanzkurse-card__arrow">
+                      <span class="tanzkurse-card__arrow-wrap">
+                        <ArrowIcon size={16} class="tanzkurse-card__arrow-icon tanzkurse-card__arrow-icon--out" />
+                        <ArrowIcon size={16} class="tanzkurse-card__arrow-icon tanzkurse-card__arrow-icon--in" />
+                      </span>
+                    </span>
                   </div>
                   <p class="tanzkurse-card__desc">{item.description}</p>
                   {item.tags && (
@@ -144,7 +149,12 @@ const uberUnsItems = [
                   <div class="tanzkurse-card__head">
                     <span class="tanzkurse-card__badge" aria-hidden="true"><DropdownIcon name={item.icon} /></span>
                     <span class="tanzkurse-card__title">{item.title}</span>
-                    <span class="tanzkurse-card__arrow"><ArrowIcon size={16} /></span>
+                    <span class="tanzkurse-card__arrow">
+                      <span class="tanzkurse-card__arrow-wrap">
+                        <ArrowIcon size={16} class="tanzkurse-card__arrow-icon tanzkurse-card__arrow-icon--out" />
+                        <ArrowIcon size={16} class="tanzkurse-card__arrow-icon tanzkurse-card__arrow-icon--in" />
+                      </span>
+                    </span>
                   </div>
                   <p class="tanzkurse-card__desc">{item.description}</p>
                 </a>
@@ -157,14 +167,17 @@ const uberUnsItems = [
       <!-- Über uns dropdown -->
       <div class="header__dropdown" id="dropdown-ueber-uns" data-dropdown-panel="ueber-uns" hidden>
         <div class="header__dropdown-inner">
-          <p class="header__dropdown-title">Über uns</p>
+          <p class="header__dropdown-title header__dropdown-title--eyebrow">Über uns</p>
           <ul class="ueberuns-grid">
             {uberUnsItems.map((item) => (
               <li>
                 <a class="ueberuns-item" href="#">
                   <span class="ueberuns-item__badge" aria-hidden="true"><DropdownIcon name={item.icon} /></span>
                   <span class="ueberuns-item__label">{item.label}</span>
-                  <ArrowIcon size={20} class="ueberuns-item__arrow" />
+                  <span class="ueberuns-item__arrow-wrap">
+                    <ArrowIcon size={20} class="ueberuns-item__arrow ueberuns-item__arrow--out" />
+                    <ArrowIcon size={20} class="ueberuns-item__arrow ueberuns-item__arrow--in" />
+                  </span>
                 </a>
               </li>
             ))}
@@ -228,7 +241,7 @@ const uberUnsItems = [
         <li><a href="#">Kontakt</a></li>
         <li><a href="#">Login</a></li>
       </ul>
-      <Button variant="primary" icon="none" href="#" class="mobile-panel__cta">Probestunde buchen</Button>
+      <Button variant="primary" icon="none" href="#" fullWidth class="mobile-panel__cta">Probestunde buchen</Button>
     </div>
   </div>
 </header>
@@ -390,6 +403,11 @@ const uberUnsItems = [
   .header--scrolled {
     --header-text: var(--color-grey-100);
     --header-cta-gap: var(--space-2);
+    /* Desktop only — once scrolled into the collapsed dark pill, it sits
+       closer to the top edge (16px) than the unscrolled navbar's 24px
+       (`.header`'s base `top` above). Below 960px this is moot: the mobile
+       media query further down sets `top` to the same 16px unconditionally. */
+    top: var(--space-4);
   }
 
   .header__container {
@@ -435,22 +453,33 @@ const uberUnsItems = [
        scrolled, where it gives the visible dark pill room to breathe. */
     padding: var(--space-2) 0;
     pointer-events: auto;
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
     transition:
       width 0.4s ease,
       padding-inline 0.4s ease,
-      background-color 0.3s ease,
-      -webkit-backdrop-filter 0.3s ease,
-      backdrop-filter 0.3s ease;
+      background-color 0.3s ease;
+    /* `width`/`padding-inline` above force a layout recalc on every frame of
+       the 0.4s collapse transition (measured via a Chrome performance trace:
+       ~20 layout shifts, one per frame, right as scroll starts). `position:
+       relative` already makes this element the containing block for
+       .header__dropdown's own `position: absolute`, so scoping layout here
+       changes nothing visually — it just stops the browser from having to
+       check whether the resize needs to propagate beyond this one element. */
+    contain: layout style;
   }
 
   .header--scrolled .header__navbar {
     width: var(--navbar-collapsed-width, auto);
-    padding: var(--space-2) var(--space-2) var(--space-2) var(--space-6);
-    background: rgba(0, 0, 0, 0.6);
-    -webkit-backdrop-filter: blur(20px);
-    backdrop-filter: blur(20px);
+    /* 2px less than the unscrolled state's `var(--space-2)` top/bottom (see
+       above) — 4px off the pill's total height — no blur (see below), so
+       trimming the padding keeps the pill from reading as too tall next to
+       the now-crisp edge. */
+    padding: calc(var(--space-2) - 2px) var(--space-2) calc(var(--space-2) - 2px) var(--space-6);
+    /* Was `rgba(0, 0, 0, 0.6)` + `backdrop-filter: blur(20px)` — the blur
+       showed up as a real cost in a perf trace (a blurred backdrop-filter
+       forces the browser to repaint everything behind the pill on every
+       scroll frame). A flat, near-opaque fill reads the same at a glance
+       and costs nothing to repaint. */
+    background: color-mix(in srgb, var(--color-grey-900) 95%, transparent);
   }
 
   .header__logo {
@@ -523,11 +552,26 @@ const uberUnsItems = [
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.2);
     color: var(--color-grey-100);
+    transition: background-color 0.15s ease;
   }
 
   .header__cta-button {
     background: var(--color-grey-100);
     color: var(--color-grey-950);
+    transition: opacity 0.15s ease;
+  }
+
+  @media (hover: hover) and (pointer: fine) and (min-width: 901px) {
+    /* 10% lighter — bump the translucent white fill's own alpha by 0.1. */
+    .header__login:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    /* 10% more transparent — the pill is solid white, so this fades the
+       whole button rather than switching to an rgba fill. */
+    .header__cta-button:hover {
+      opacity: 0.9;
+    }
   }
 
   .header__burger {
@@ -687,6 +731,45 @@ const uberUnsItems = [
     flex-shrink: 0;
   }
 
+  /* Same "fly out" hover as Button (see Button.astro) — two stacked arrow
+     copies in a clipped 16x16 box, triggered by hovering the whole card
+     link rather than the small icon itself. */
+  .tanzkurse-card__arrow-wrap {
+    position: relative;
+    width: 16px;
+    height: 16px;
+    overflow: hidden;
+  }
+
+  :global(.tanzkurse-card__arrow-icon) {
+    position: absolute;
+    inset: 0;
+  }
+
+  :global(.tanzkurse-card__arrow-icon--out) {
+    transform: translate(0, 0);
+  }
+
+  :global(.tanzkurse-card__arrow-icon--in) {
+    transform: translate(-100%, 100%);
+  }
+
+  @media (hover: hover) and (pointer: fine) and (min-width: 901px) {
+    .tanzkurse-card:hover :global(.tanzkurse-card__arrow-icon--out) {
+      transform: translate(100%, -100%);
+    }
+
+    .tanzkurse-card:hover :global(.tanzkurse-card__arrow-icon--in) {
+      transform: translate(0, 0);
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.tanzkurse-card__arrow-icon) {
+      transition: transform 0.35s ease;
+    }
+  }
+
   .tanzkurse-card__desc {
     font-family: var(--font-family-base);
     font-weight: 400;
@@ -755,8 +838,44 @@ const uberUnsItems = [
     color: var(--color-grey-900);
   }
 
-  .ueberuns-item__arrow {
+  /* Same "fly out" hover as Button (see Button.astro) — two stacked arrow
+     copies in a clipped 20x20 box, triggered by hovering the whole row. */
+  .ueberuns-item__arrow-wrap {
+    position: relative;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    overflow: hidden;
     color: var(--color-grey-500);
+  }
+
+  :global(.ueberuns-item__arrow) {
+    position: absolute;
+    inset: 0;
+  }
+
+  :global(.ueberuns-item__arrow--out) {
+    transform: translate(0, 0);
+  }
+
+  :global(.ueberuns-item__arrow--in) {
+    transform: translate(-100%, 100%);
+  }
+
+  @media (hover: hover) and (pointer: fine) and (min-width: 901px) {
+    .ueberuns-item:hover :global(.ueberuns-item__arrow--out) {
+      transform: translate(100%, -100%);
+    }
+
+    .ueberuns-item:hover :global(.ueberuns-item__arrow--in) {
+      transform: translate(0, 0);
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.ueberuns-item__arrow) {
+      transition: transform 0.35s ease;
+    }
   }
 
   .ueberuns-item:hover,
@@ -842,12 +961,14 @@ const uberUnsItems = [
     color: var(--color-grey-600);
   }
 
-  .mobile-panel__cta {
-    width: 100%;
-  }
-
   /* --- Responsive: collapse to hamburger below ~960px --- */
   @media (max-width: 960px) {
+    /* Figma's mobile frame insets the navbar pill 16px from the top, vs.
+       desktop's 24px (.header's base `top` above). */
+    .header {
+      top: var(--space-4);
+    }
+
     .header__container {
       justify-content: space-between;
       /* The container's own row-gap would otherwise stack with

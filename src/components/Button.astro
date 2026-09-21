@@ -1,26 +1,68 @@
 ---
 // Reusable pill button. Mirrors the Figma "Button" component (node 516:416):
 // 4 color variants x 3 icon positions.
+import type { AstroComponentFactory } from "astro/runtime/server/index.js";
 import ArrowIcon from "./icons/ArrowIcon.astro";
 
 interface Props {
   variant?: "primary" | "secondary" | "white" | "tertiary";
   icon?: "right" | "left" | "none";
+  // Swaps the glyph for a specific use (e.g. InstagramIcon on a social CTA).
+  // Renders as a single static icon — the default ArrowIcon's two-copy
+  // "fly out" hover slide is a directional cue specific to that glyph, not
+  // something to replay for an arbitrary icon without a Figma hover spec.
+  iconComponent?: AstroComponentFactory;
   href?: string;
   class?: string;
+  // A button that should fill a narrow (mobile) container's width — never a
+  // bespoke `width: 100%` per usage, which stretches edge-to-edge with
+  // whatever padding that particular parent happens to have. This caps how
+  // wide the button can grow and centers it, so every "full width" CTA
+  // across the site keeps the same, even left/right gap instead of each
+  // component inventing its own.
+  fullWidth?: boolean;
 }
 
-const { variant = "primary", icon = "right", href, class: className } = Astro.props;
+const {
+  variant = "primary",
+  icon = "right",
+  iconComponent: CustomIcon,
+  href,
+  class: className,
+  fullWidth = false,
+} = Astro.props;
 const Tag = href ? "a" : "button";
 ---
 
 <Tag
-  class:list={["button", `button--${variant}`, `button--icon-${icon}`, className]}
+  class:list={["button", `button--${variant}`, `button--icon-${icon}`, fullWidth && "button--full-width", className]}
   href={href}
 >
-  {icon === "left" && <ArrowIcon class="button__icon" />}
+  {icon === "left" && (
+    <span class="button__icon-wrap">
+      {CustomIcon ? (
+        <CustomIcon class="button__icon" />
+      ) : (
+        <>
+          <ArrowIcon class="button__icon button__icon--out" />
+          <ArrowIcon class="button__icon button__icon--in" />
+        </>
+      )}
+    </span>
+  )}
   <span class="button__label"><slot /></span>
-  {icon === "right" && <ArrowIcon class="button__icon" />}
+  {icon === "right" && (
+    <span class="button__icon-wrap">
+      {CustomIcon ? (
+        <CustomIcon class="button__icon" />
+      ) : (
+        <>
+          <ArrowIcon class="button__icon button__icon--out" />
+          <ArrowIcon class="button__icon button__icon--in" />
+        </>
+      )}
+    </span>
+  )}
 </Tag>
 
 <style>
@@ -50,8 +92,53 @@ const Tag = href ? "a" : "button";
     padding-inline: var(--space-3) var(--space-4);
   }
 
-  .button__icon {
+  /* Arrow "fly out" hover: two stacked copies of the arrow in a clipped
+     20x20 box — the resting copy slides out to the top-right on hover while
+     a second copy slides in from the bottom-left to replace it, matching
+     the arrow glyph's own NE direction. A common link/button micro-interaction. */
+  .button__icon-wrap {
+    position: relative;
+    width: 20px;
+    height: 20px;
+    overflow: hidden;
     flex-shrink: 0;
+  }
+
+  /* :global() because <ArrowIcon> renders its own root <svg> — it has no
+     <style> of its own, so Astro never stamps a scope attribute onto that
+     element at all, and a plain (auto-scoped) selector here can't reach it. */
+  :global(.button__icon) {
+    position: absolute;
+    inset: 0;
+  }
+
+  :global(.button__icon--out) {
+    transform: translate(0, 0);
+  }
+
+  :global(.button__icon--in) {
+    transform: translate(-100%, 100%);
+  }
+
+  /* `min-width: 901px` (the site's shared mobile/desktop breakpoint) is a
+     hard backstop on top of the hover/pointer check: some touch browsers
+     still report `(hover: hover) and (pointer: fine)` as true, and any
+     mobile browser can apply a tapped link's `:hover` state until the next
+     tap elsewhere — either way this animation must never fire below desktop. */
+  @media (hover: hover) and (pointer: fine) and (min-width: 901px) {
+    .button:hover :global(.button__icon--out) {
+      transform: translate(100%, -100%);
+    }
+
+    .button:hover :global(.button__icon--in) {
+      transform: translate(0, 0);
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.button__icon) {
+      transition: transform 0.35s ease;
+    }
   }
 
   /* Primary — green pill, used for the main conversion CTA (Probestunde buchen) */
@@ -77,10 +164,35 @@ const Tag = href ? "a" : "button";
     color: var(--color-grey-900);
   }
 
-  /* Tertiary — plain underlined text link, no pill */
+  @media (prefers-reduced-motion: no-preference) {
+    .button--primary,
+    .button--secondary,
+    .button--white {
+      transition: background-color 0.2s ease;
+    }
+  }
+
+  /* Same hover/pointer/width guard as the arrow "fly out" above — desktop-only. */
+  @media (hover: hover) and (pointer: fine) and (min-width: 901px) {
+    .button--primary:hover {
+      background: var(--color-green-600);
+    }
+
+    .button--secondary:hover {
+      background: var(--color-grey-800);
+    }
+
+    .button--white:hover {
+      background: var(--color-grey-100);
+    }
+  }
+
+  /* Tertiary — plain underlined text link, no pill. Figma node 525:2492:
+     same 40px height/8px vertical padding as the pill variants, just no
+     horizontal padding or fill, plus its own 6px icon gap (vs. 8px). */
   .button--tertiary {
-    height: auto;
-    padding: 0;
+    padding-inline: 0;
+    gap: 6px;
     border: none;
     border-bottom: 1.6px solid var(--color-grey-950);
     border-radius: 0;
@@ -90,5 +202,16 @@ const Tag = href ? "a" : "button";
   .button:focus-visible {
     outline: 2px solid var(--color-green-600);
     outline-offset: 2px;
+  }
+
+  /* Full-width CTA rule: grows to fill its container but stops at a sane
+     reading width instead of stretching edge-to-edge on wider phones/
+     tablets, and stays centered so the leftover space (if any) always
+     splits evenly left/right. */
+  .button--full-width {
+    display: flex;
+    width: 100%;
+    max-width: 400px;
+    margin-inline: auto;
   }
 </style>

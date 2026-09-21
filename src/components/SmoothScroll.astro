@@ -1,0 +1,37 @@
+---
+// Site-wide inertia/smooth scroll (Lenis) — the same mechanism referenced
+// site papertiger.com/agency uses. Ties into the same GSAP ScrollTrigger
+// registry Gallery.astro's pin/scrub animation uses (ScrollTrigger.update
+// refreshes every active trigger, not just ones created after this runs),
+// so that animation now rides on Lenis's smoothed scroll position instead
+// of stacking its own separate lag on top — see CLAUDE.md's decision log.
+// No visible markup: this only wires up the global scroll behaviour.
+---
+
+<script>
+  import Lenis from "lenis";
+  import gsap from "gsap";
+  import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // prefers-reduced-motion: leave native (instant) scroll untouched. Every
+  // scroll-tied animation in this project already independently no-ops
+  // under the same check (see Gallery.astro, Hero.astro), so nothing here
+  // needs to coordinate with those beyond simply not running.
+  if (!reducedMotion) {
+    gsap.registerPlugin(ScrollTrigger);
+
+    const lenis = new Lenis();
+
+    lenis.on("scroll", ScrollTrigger.update);
+
+    gsap.ticker.add((time) => {
+      // Lenis wants milliseconds; GSAP's ticker time is in seconds.
+      lenis.raf(time * 1000);
+    });
+    // Lenis is already the thing smoothing scroll — GSAP's own lag-smoothing
+    // would otherwise fight it and stutter under a dropped frame.
+    gsap.ticker.lagSmoothing(0);
+  }
+</script>
