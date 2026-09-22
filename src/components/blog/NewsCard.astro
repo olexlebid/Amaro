@@ -1,0 +1,105 @@
+---
+// Blog listing card. No Figma frame exists yet for the blog — this follows
+// the site's shared token/BEM conventions (CLAUDE.md §7) as a functional
+// placeholder; revisit once a design is provided.
+import { Picture } from "astro:assets";
+import type { ImageMetadata } from "astro:assets";
+
+interface Props {
+  href: string;
+  title: string;
+  category: string;
+  date: Date;
+  excerpt: string;
+  cover: ImageMetadata;
+  coverAlt: string;
+  readingMinutes: number;
+}
+
+const { href, title, category, date, excerpt, cover, coverAlt, readingMinutes } = Astro.props;
+
+const formattedDate = date.toLocaleDateString("de-DE", { day: "2-digit", month: "long", year: "numeric" });
+---
+
+<article class="news-card" data-news-card data-category={category}>
+  <a class="news-card__media" href={href} aria-label={title}>
+    <Picture src={cover} alt={coverAlt} width={416} height={280} densities={[1, 2]} formats={["avif", "webp"]} fallbackFormat="webp" />
+  </a>
+  <div class="news-card__body">
+    <p class="news-card__category u-upper-100">{category}</p>
+    <h3 class="news-card__title"><a href={href}>{title}</a></h3>
+    <p class="news-card__excerpt">{excerpt}</p>
+    <p class="news-card__meta">
+      <time datetime={date.toISOString()}>{formattedDate}</time>
+      <span aria-hidden="true">·</span>
+      <span>{readingMinutes} Min. Lesezeit</span>
+    </p>
+  </div>
+</article>
+
+<style>
+  .news-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .news-card__media {
+    display: block;
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .news-card__media :global(img) {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 416 / 280;
+    object-fit: cover;
+  }
+
+  .news-card__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .news-card__category {
+    color: var(--color-green-600);
+  }
+
+  .news-card__title {
+    font-family: var(--font-family-base);
+    font-weight: var(--font-title-weight);
+    font-size: var(--font-title-100-size);
+    line-height: var(--font-title-100-line);
+    color: var(--color-grey-900);
+  }
+
+  .news-card__title a {
+    text-decoration: none;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .news-card__title a:hover {
+      text-decoration: underline;
+    }
+  }
+
+  .news-card__excerpt {
+    font-family: var(--font-family-base);
+    font-weight: var(--font-body-weight);
+    font-size: var(--font-body-200-size);
+    line-height: var(--font-body-200-line);
+    color: var(--color-grey-600);
+  }
+
+  .news-card__meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-family: var(--font-family-base);
+    font-size: var(--font-body-100-size);
+    color: var(--color-grey-500);
+  }
+</style>

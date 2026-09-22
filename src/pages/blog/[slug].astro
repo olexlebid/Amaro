@@ -1,0 +1,129 @@
+---
+// Article detail page. No Figma frame exists yet for the blog — functional
+// layout on shared tokens, to be revisited once designed.
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Button from "../../components/Button.astro";
+import { getCollection, render } from "astro:content";
+import { Picture } from "astro:assets";
+
+const WORDS_PER_MINUTE = 200;
+
+export async function getStaticPaths() {
+  const entries = await getCollection("news");
+  return entries.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const readingMinutes = Math.max(1, Math.round(entry.body.trim().split(/\s+/).filter(Boolean).length / WORDS_PER_MINUTE));
+const formattedDate = entry.data.date.toLocaleDateString("de-DE", { day: "2-digit", month: "long", year: "numeric" });
+---
+
+<BaseLayout title={`${entry.data.title} — Tanzschule Amaro Blog`} description={entry.data.excerpt}>
+  <main>
+    <article class="article section">
+      <div class="container article__header">
+        <p class="article__category u-upper-100">{entry.data.category}</p>
+        <h1 class="article__title">{entry.data.title}</h1>
+        <p class="article__meta">
+          <time datetime={entry.data.date.toISOString()}>{formattedDate}</time>
+          <span aria-hidden="true">·</span>
+          <span>{readingMinutes} Min. Lesezeit</span>
+        </p>
+      </div>
+
+      <div class="container article__cover">
+        <Picture
+          src={entry.data.cover}
+          alt={entry.data.coverAlt}
+          width={1200}
+          height={640}
+          densities={[1, 2]}
+          formats={["avif", "webp"]}
+          fallbackFormat="webp"
+        />
+      </div>
+
+      <div class="container article__body">
+        <Content />
+      </div>
+
+      <div class="container article__cta">
+        <Button variant="primary" icon="right" href="#">Kostenlose Probestunde sichern</Button>
+      </div>
+    </article>
+  </main>
+</BaseLayout>
+
+<style>
+  .article__header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    max-width: 760px;
+  }
+
+  .article__category {
+    color: var(--color-green-600);
+  }
+
+  .article__title {
+    font-family: var(--font-family-base);
+    font-weight: var(--font-title-weight);
+    font-size: clamp(2rem, 5vw, var(--font-title-400-size));
+    line-height: var(--font-title-400-line);
+    color: var(--color-grey-900);
+  }
+
+  .article__meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-family: var(--font-family-base);
+    font-size: var(--font-body-100-size);
+    color: var(--color-grey-500);
+  }
+
+  .article__cover {
+    margin-top: var(--space-8);
+  }
+
+  .article__cover :global(img) {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1200 / 640;
+    object-fit: cover;
+    border-radius: 24px;
+  }
+
+  .article__body {
+    margin-top: var(--space-10);
+    max-width: 760px;
+    font-family: var(--font-family-base);
+    font-weight: var(--font-body-weight);
+    font-size: var(--font-body-400-size);
+    line-height: var(--font-body-400-line);
+    color: var(--color-grey-700);
+  }
+
+  /* Markdoc's <Content /> renders its own wrapping <article>, so this can't
+     rely on a flex `gap` between .article__body's direct children (there's
+     only one: that wrapper) — every block below gets its own margin instead. */
+  .article__body :global(p) {
+    margin-bottom: var(--space-4);
+  }
+
+  .article__body :global(h2) {
+    font-weight: var(--font-title-weight);
+    font-size: var(--font-title-100-size);
+    line-height: var(--font-title-100-line);
+    color: var(--color-grey-900);
+    margin-top: var(--space-8);
+    margin-bottom: var(--space-4);
+  }
+
+  .article__cta {
+    margin-top: var(--space-10);
+  }
+</style>

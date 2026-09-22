@@ -19,4 +19,24 @@ const courses = defineCollection({
     }),
 });
 
-export const collections = { courses };
+// `news` (blog) — one Markdoc file per article, id = filename = slug, body
+// written in Markdoc (see astro.config.mjs's `markdoc()` integration).
+// Currently edited by me via Claude (CLAUDE.md §6.2), not registered in
+// Keystatic. Deliberately Markdoc rather than JSON (like `courses` above) or
+// plain MDX: Keystatic's rich-text field (`fields.document()`) serializes to
+// Markdoc too, so once the owners get a blog admin UI it can point at this
+// same folder and open these exact files with no format migration.
+const news = defineCollection({
+  loader: glob({ pattern: "**/*.mdoc", base: "./src/content/news" }),
+  schema: ({ image }) =>
+    z.object({
+      title: z.string(),
+      date: z.coerce.date(),
+      category: z.enum(["Neuigkeiten", "Erfolge", "Tipps", "Events"]),
+      excerpt: z.string(),
+      cover: image(),
+      coverAlt: z.string(),
+    }),
+});
+
+export const collections = { courses, news };

@@ -1,0 +1,157 @@
+---
+// Blog hub + listing in one page (simplified vs. the breef.com/breefingroom
+// 2-page hub/listing split — not enough expected content volume here to
+// justify a separate /blog/articles route). No Figma frame exists yet;
+// functional layout on shared tokens, to be revisited once designed.
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import NewsCard from "../../components/blog/NewsCard.astro";
+import { getCollection } from "astro:content";
+
+const WORDS_PER_MINUTE = 200;
+
+const entries = await getCollection("news");
+const articles = entries
+  .map((entry) => ({
+    slug: entry.id,
+    title: entry.data.title,
+    date: entry.data.date,
+    category: entry.data.category,
+    excerpt: entry.data.excerpt,
+    cover: entry.data.cover,
+    coverAlt: entry.data.coverAlt,
+    readingMinutes: Math.max(1, Math.round(entry.body.trim().split(/\s+/).filter(Boolean).length / WORDS_PER_MINUTE)),
+  }))
+  .sort((a, b) => b.date.valueOf() - a.date.valueOf());
+
+const categories = ["Alle", ...new Set(articles.map((article) => article.category))];
+---
+
+<BaseLayout
+  title="Blog — Tanzschule Amaro"
+  description="Neuigkeiten, Erfolge und Tipps rund um Tanzschule Amaro in Hannover-Badenstedt."
+>
+  <main>
+    <section class="blog-hero section">
+      <div class="container blog-hero__inner">
+        <p class="blog-hero__eyebrow u-upper-200">Blog</p>
+        <h1 class="blog-hero__heading">Neuigkeiten von Tanzschule Amaro</h1>
+      </div>
+    </section>
+
+    <section class="blog-list section">
+      <div class="container">
+        {categories.length > 2 && (
+          <div class="blog-list__filter" data-blog-filter role="group" aria-label="Nach Kategorie filtern">
+            {categories.map((category, index) => (
+              <button type="button" class="blog-list__filter-btn" data-filter-btn data-filter-value={category} aria-pressed={index === 0}>
+                {category}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {articles.length > 0 ? (
+          <div class="blog-list__grid">
+            {articles.map((article) => (
+              <NewsCard
+                href={`/blog/${article.slug}`}
+                title={article.title}
+                category={article.category}
+                date={article.date}
+                excerpt={article.excerpt}
+                cover={article.cover}
+                coverAlt={article.coverAlt}
+                readingMinutes={article.readingMinutes}
+              />
+            ))}
+          </div>
+        ) : (
+          <p class="blog-list__empty">Bald findest du hier unsere ersten Beiträge.</p>
+        )}
+      </div>
+    </section>
+  </main>
+</BaseLayout>
+
+<script>
+  // Client-side category filter — small enough article count not to need
+  // per-category static pages/query params.
+  const filterButtons = document.querySelectorAll<HTMLButtonElement>("[data-filter-btn]");
+  const cards = document.querySelectorAll<HTMLElement>("[data-news-card]");
+
+  filterButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const value = button.dataset.filterValue;
+      filterButtons.forEach((btn) => btn.setAttribute("aria-pressed", String(btn === button)));
+      cards.forEach((card) => {
+        const show = value === "Alle" || card.dataset.category === value;
+        card.style.display = show ? "" : "none";
+      });
+    });
+  });
+</script>
+
+<style>
+  .blog-hero__inner {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .blog-hero__eyebrow {
+    color: var(--color-grey-500);
+  }
+
+  .blog-hero__heading {
+    font-family: var(--font-family-base);
+    font-weight: var(--font-title-weight);
+    font-size: clamp(2.5rem, 6vw, var(--font-title-600-size));
+    line-height: var(--font-title-600-line);
+    color: var(--color-grey-900);
+  }
+
+  .blog-list {
+    padding-top: 0;
+  }
+
+  .blog-list__filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-bottom: var(--space-10);
+  }
+
+  .blog-list__filter-btn {
+    padding: var(--space-2) var(--space-4);
+    border-radius: 32px;
+    border: 1px solid var(--color-grey-300);
+    background: var(--color-grey-100);
+    color: var(--color-grey-700);
+    font-family: var(--font-family-base);
+    font-weight: 700;
+    font-size: var(--font-body-100-size);
+  }
+
+  .blog-list__filter-btn[aria-pressed="true"] {
+    background: var(--color-grey-900);
+    border-color: var(--color-grey-950);
+    color: var(--color-grey-50);
+  }
+
+  .blog-list__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-10) var(--space-6);
+  }
+
+  .blog-list__empty {
+    color: var(--color-grey-500);
+  }
+
+  @media (max-width: 900px) {
+    .blog-list__grid {
+      grid-template-columns: 1fr;
+      gap: var(--space-8);
+    }
+  }
+</style>
