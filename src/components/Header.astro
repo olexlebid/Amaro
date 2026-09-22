@@ -145,7 +145,7 @@ const uberUnsItems = [
                 </a>
               ))}
             </div>
-            <div class="tanzkurse-col">
+            <div class="tanzkurse-col tanzkurse-col--fill">
               {tanzkurseCol2.map((item) => (
                 <a class="tanzkurse-card" href="#">
                   <div class="tanzkurse-card__head">
@@ -664,7 +664,6 @@ const uberUnsItems = [
   .tanzkurse-grid {
     display: flex;
     gap: var(--space-2);
-    margin-bottom: var(--space-6);
   }
 
   .tanzkurse-col {
@@ -673,6 +672,14 @@ const uberUnsItems = [
     flex: 1;
     gap: var(--space-2);
     min-width: 0;
+  }
+
+  /* Col 2's three shorter cards stretch to fill the column's full height —
+     .tanzkurse-grid's default align-items: stretch already matches col 2's
+     own height to col 1 (the taller column), but without this each card
+     stays content-sized, leaving dead space below the last card. */
+  .tanzkurse-col--fill .tanzkurse-card {
+    flex: 1;
   }
 
   .tanzkurse-card {
