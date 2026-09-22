@@ -74,7 +74,13 @@ const mosaic = [
            out, so completing the hold can't cause a layout jump. -->
       <div class="countdown-cta__switch">
         <div class="countdown-cta__hold">
-          <a href="#" class="countdown-button" data-countdown-button data-hold-seconds="5">
+          <!-- <button>, not <a href>: this never navigates (the TODO below is
+               the real booking link, which lives on .countdown-cta__result-button
+               once the hold completes) — and a real <a href> here broke the
+               hold on mobile, since iOS/Android intercept a long-press on a
+               link with their own native link-callout/context menu before the
+               hold finishes. -->
+          <button type="button" class="countdown-button" data-countdown-button data-hold-seconds="5">
             <!-- TODO: Nimbus Cloud — completing the hold should open the Probestunde booking flow -->
             <span class="countdown-button__glow" data-countdown-glow aria-hidden="true"></span>
             <svg class="countdown-button__ring" viewBox="0 0 196 196" aria-hidden="true">
@@ -82,7 +88,7 @@ const mosaic = [
               <circle class="countdown-button__ring-progress" cx="98" cy="98" r="89" data-countdown-progress />
             </svg>
             <span class="countdown-button__number" data-countdown-number>5</span>
-          </a>
+          </button>
           <p class="countdown-cta__hint">[gedrückt halten]</p>
         </div>
 
@@ -105,7 +111,7 @@ const mosaic = [
 
   gsap.registerPlugin(SplitText);
 
-  const button = document.querySelector<HTMLAnchorElement>("[data-countdown-button]");
+  const button = document.querySelector<HTMLButtonElement>("[data-countdown-button]");
   const progress = document.querySelector<SVGCircleElement>("[data-countdown-progress]");
   const numberEl = document.querySelector<HTMLElement>("[data-countdown-number]");
   const glow = document.querySelector<HTMLElement>("[data-countdown-glow]");
@@ -185,16 +191,20 @@ const mosaic = [
       frame = requestAnimationFrame(tick);
     }
 
-    // The button is styled as a link but never really navigates on its own —
-    // completing it swaps in the real booking button instead (see above).
-    button.addEventListener("click", (event) => {
-      event.preventDefault();
+    // Reduced-motion fallback: a plain click completes it immediately
+    // instead of requiring a hold (see also startHold()'s own early-return).
+    button.addEventListener("click", () => {
       if (prefersReducedMotion) complete();
     });
 
     button.addEventListener("pointerdown", startHold);
     button.addEventListener("pointerup", reset);
     button.addEventListener("pointerleave", reset);
+    // A touch drifting enough to read as a scroll (or the OS taking over the
+    // gesture some other way) ends the pointer sequence with `pointercancel`
+    // instead of `pointerup` — without this the ring/number could be left
+    // stuck mid-fill with nothing left listening to reset them.
+    button.addEventListener("pointercancel", reset);
     button.addEventListener("keyup", (event) => {
       if (event.key === "Enter" || event.key === " ") complete();
     });
@@ -403,6 +413,15 @@ const mosaic = [
     border-radius: 50%;
     background: var(--color-grey-100);
     border: 1px solid var(--color-grey-20p);
+    /* Without these, a touch-and-hold here can get read as the start of a
+       page scroll or a text-selection gesture — either cancels the pointer
+       sequence (see the script's `pointercancel` handler) before the hold
+       completes. `-webkit-touch-callout` also blocks iOS's own long-press
+       callout, on top of the button (not link) markup fix above. */
+    touch-action: none;
+    -webkit-touch-callout: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
   }
 
   /* Sits behind the button's own opaque background (first in DOM order, no

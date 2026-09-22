@@ -72,6 +72,13 @@ button {
   padding-inline: clamp(1rem, 4vw, var(--space-6));
 }
 
+/* Scroll lock while Gallery.astro's lightbox is open — on <html> rather than
+   <body> so it also blocks Lenis (SmoothScroll.astro), which scrolls the
+   document itself rather than a wrapper element. */
+html.has-lightbox-open {
+  overflow: hidden;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

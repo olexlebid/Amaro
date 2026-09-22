@@ -6,6 +6,7 @@
 import { Picture } from "astro:assets";
 import Button from "../Button.astro";
 import InstagramIcon from "../icons/InstagramIcon.astro";
+import CloseIcon from "../icons/CloseIcon.astro";
 import gallery02 from "../../assets/startseite/gallery_02.jpg";
 import galleryTeamJubel from "../../assets/startseite/gallery_team_jubel.jpg";
 import galleryStreetstyle from "../../assets/startseite/gallery_streetstyle.jpg";
@@ -61,13 +62,15 @@ const photos = [
   </div>
 
   <!-- Mobile-only Instagram teaser — Figma's mobile frame swaps the fanned
-       desktop row for a flat 3x2 grid (all 6 cards) plus this follow card. -->
+       desktop row for a flat 3x2 grid (all 6 cards) plus this follow card.
+       Each cell is a <button> (opens the lightbox below), not just a
+       decorative image — there's no separate link destination to visit. -->
   <div class="gallery__mobile container">
     <div class="gallery__grid">
-      {photos.map((photo) => (
-        <div class="gallery__grid-cell">
-          <Picture src={photo.src} alt={photo.alt} width={364} height={564} densities={[1, 2]} formats={["avif", "webp"]} fallbackFormat="webp" />
-        </div>
+      {photos.map((photo, index) => (
+        <button type="button" class="gallery__grid-cell" data-gallery-lightbox-trigger data-index={index} aria-label={`${photo.alt} – groß anzeigen`}>
+          <Picture src={photo.src} alt="" width={364} height={564} densities={[1, 2]} formats={["avif", "webp"]} fallbackFormat="webp" />
+        </button>
       ))}
     </div>
 
@@ -83,6 +86,34 @@ const photos = [
         </Button>
       </div>
     </div>
+  </div>
+
+  <!-- Fullscreen lightbox for the mobile grid above (desktop's fanned row
+       has no trigger into this — the cards there are the scrub/pin
+       animation's own subject, not a separate "view full photo" action).
+       One shared dialog + one <Picture> per photo (kept in sync with
+       .gallery__grid-cell's own data-index) rather than swapping a single
+       <img>'s src via JS — reuses astro:assets' normal AVIF/WebP output
+       instead of pointing at a raw import. -->
+  <div class="gallery-lightbox" data-gallery-lightbox role="dialog" aria-modal="true" aria-label="Galeriebild" hidden>
+    <button type="button" class="gallery-lightbox__close" data-gallery-lightbox-close aria-label="Schließen">
+      <CloseIcon size={24} />
+    </button>
+    {photos.map((photo, index) => (
+      <Picture
+        class="gallery-lightbox__image"
+        data-gallery-lightbox-image
+        data-index={index}
+        src={photo.src}
+        alt={photo.alt}
+        width={800}
+        height={1239}
+        densities={[1, 2]}
+        formats={["avif", "webp"]}
+        fallbackFormat="webp"
+        loading="lazy"
+      />
+    ))}
   </div>
 </section>
 
@@ -212,8 +243,16 @@ const photos = [
     }
 
     .gallery__grid-cell {
+      display: block;
+      width: 100%;
+      padding: 0;
       border-radius: 16px;
       overflow: hidden;
+    }
+
+    .gallery__grid-cell:focus-visible {
+      outline: 2px solid var(--color-green-600);
+      outline-offset: 2px;
     }
 
     .gallery__grid-cell :global(img) {
@@ -262,7 +301,109 @@ const photos = [
     }
 
   }
+
+  .gallery-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-grey-950);
+  }
+
+  .gallery-lightbox[hidden] {
+    display: none;
+  }
+
+  .gallery-lightbox__close {
+    position: absolute;
+    top: var(--space-4);
+    right: var(--space-4);
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--color-grey-20p);
+    color: var(--color-grey-50);
+  }
+
+  /* <Picture> renders a single <img class="gallery-lightbox__image"> here
+     (no <picture>/<source> wrapper — Astro collapses to one <img> when the
+     fallback format alone covers every requested format), so this rule
+     targets that img directly rather than a nested :global(img). */
+  .gallery-lightbox__image {
+    display: none;
+  }
+
+  .gallery-lightbox__image.is-active {
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: 100vw;
+    max-height: 100vh;
+    object-fit: contain;
+  }
 </style>
+
+<script>
+  // Lightbox: one shared dialog (see the markup above) reused across every
+  // mobile grid photo — opening one just toggles which <Picture> inside it
+  // is .is-active, no DOM swapping needed. Desktop never triggers this (its
+  // gallery__card row has no button into it), so this no-ops harmlessly
+  // there instead of needing its own breakpoint gate.
+  const triggers = Array.from(document.querySelectorAll<HTMLButtonElement>("[data-gallery-lightbox-trigger]"));
+  const lightbox = document.querySelector<HTMLElement>("[data-gallery-lightbox]");
+  const closeButton = document.querySelector<HTMLButtonElement>("[data-gallery-lightbox-close]");
+  const images = Array.from(document.querySelectorAll<HTMLElement>("[data-gallery-lightbox-image]"));
+
+  if (triggers.length && lightbox && closeButton) {
+    let lastFocused: HTMLElement | null = null;
+
+    // The close button is the only focusable element inside the dialog, so
+    // trapping focus just means keeping it there — no need to walk a list
+    // of focusable children like a dialog with real content would.
+    function onKeydown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        closeLightbox();
+      } else if (event.key === "Tab") {
+        event.preventDefault();
+        closeButton!.focus();
+      }
+    }
+
+    function openLightbox(index: number) {
+      images.forEach((image) => image.classList.toggle("is-active", image.dataset.index === String(index)));
+      lastFocused = document.activeElement as HTMLElement;
+      lightbox!.hidden = false;
+      document.documentElement.classList.add("has-lightbox-open");
+      closeButton!.focus();
+      document.addEventListener("keydown", onKeydown);
+    }
+
+    function closeLightbox() {
+      lightbox!.hidden = true;
+      document.documentElement.classList.remove("has-lightbox-open");
+      document.removeEventListener("keydown", onKeydown);
+      lastFocused?.focus();
+    }
+
+    triggers.forEach((trigger) => {
+      trigger.addEventListener("click", () => openLightbox(Number(trigger.dataset.index ?? "0")));
+    });
+
+    closeButton.addEventListener("click", closeLightbox);
+    // Tapping the dark backdrop closes it too — only the backdrop itself
+    // (not the photo or close button) is a valid event.target for this,
+    // since both of those stop the click from ever reaching the dialog root.
+    lightbox.addEventListener("click", (event) => {
+      if (event.target === lightbox) closeLightbox();
+    });
+  }
+</script>
 
 <script>
   // Pins the desktop gallery and scrubs the card row horizontally with
