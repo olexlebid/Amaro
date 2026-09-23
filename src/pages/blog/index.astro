@@ -20,8 +20,10 @@ const articles = entries
     cover: entry.data.cover,
     coverAlt: entry.data.coverAlt,
     readingMinutes: Math.max(1, Math.round(entry.body.trim().split(/\s+/).filter(Boolean).length / WORDS_PER_MINUTE)),
+    featured: entry.data.featured,
   }))
-  .sort((a, b) => b.date.valueOf() - a.date.valueOf());
+  // Featured articles first, then newest-first within each group.
+  .sort((a, b) => Number(b.featured) - Number(a.featured) || b.date.valueOf() - a.date.valueOf());
 
 const categories = ["Alle", ...new Set(articles.map((article) => article.category))];
 ---
@@ -62,6 +64,7 @@ const categories = ["Alle", ...new Set(articles.map((article) => article.categor
                 cover={article.cover}
                 coverAlt={article.coverAlt}
                 readingMinutes={article.readingMinutes}
+                featured={article.featured}
               />
             ))}
           </div>

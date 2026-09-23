@@ -1,5 +1,6 @@
 ---
 // Shared page shell: fonts, tokens, global styles, header/footer, and <head> boilerplate.
+import { getImage } from "astro:assets";
 import "../styles/fonts.css";
 import "../styles/tokens.css";
 import "../styles/base.css";
@@ -8,6 +9,7 @@ import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 import Preloader from "../components/Preloader.astro";
 import SmoothScroll from "../components/SmoothScroll.astro";
+import ogImageSource from "../assets/og_image.jpg";
 
 interface Props {
   title: string;
@@ -15,6 +17,11 @@ interface Props {
 }
 
 const { title, description } = Astro.props;
+
+// Same preview image on every page for now — no per-page override exists yet.
+const ogImage = await getImage({ src: ogImageSource, format: "jpg" });
+const ogImageUrl = new URL(ogImage.src, Astro.site);
+const pageUrl = new URL(Astro.url.pathname, Astro.site);
 ---
 
 <!doctype html>
@@ -22,9 +29,28 @@ const { title, description } = Astro.props;
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="256x256" href="/favicon-256x256.png" />
+    <link rel="apple-touch-icon" href="/favicon-256x256.png" />
     <meta name="description" content={description} />
+    <link rel="canonical" href={pageUrl} />
     <title>{title}</title>
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Tanzschule Amaro" />
+    <meta property="og:locale" content="de_DE" />
+    <meta property="og:url" content={pageUrl} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta property="og:image:width" content={String(ogImage.attributes.width)} />
+    <meta property="og:image:height" content={String(ogImage.attributes.height)} />
+    <meta property="og:image:alt" content="Tanzschule Amaro – ADTV Tanzschule in Hannover-Badenstedt" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageUrl} />
     <!-- Preload the two weights used above the fold (body text + hero H1/uppercase labels) -->
     <link rel="preload" href="/fonts/RethinkSans-Medium.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/RethinkSans-ExtraBold.woff2" as="font" type="font/woff2" crossorigin />

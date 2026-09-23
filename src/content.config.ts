@@ -26,6 +26,9 @@ const courses = defineCollection({
 // plain MDX: Keystatic's rich-text field (`fields.document()`) serializes to
 // Markdoc too, so once the owners get a blog admin UI it can point at this
 // same folder and open these exact files with no format migration.
+// `metaTitle`/`metaDescription`/`author`/`featured` are all optional — omit
+// the key entirely when unused (a blank `key:` parses to `null` in YAML,
+// which `.optional()` rejects; it wants the key missing, not empty).
 const news = defineCollection({
   loader: glob({ pattern: "**/*.mdoc", base: "./src/content/news" }),
   schema: ({ image }) =>
@@ -36,6 +39,10 @@ const news = defineCollection({
       excerpt: z.string(),
       cover: image(),
       coverAlt: z.string(),
+      metaTitle: z.string().optional(),
+      metaDescription: z.string().optional(),
+      author: z.string().optional(),
+      featured: z.boolean().default(false),
     }),
 });
 

@@ -17,9 +17,14 @@ const { entry } = Astro.props;
 const { Content } = await render(entry);
 const readingMinutes = Math.max(1, Math.round(entry.body.trim().split(/\s+/).filter(Boolean).length / WORDS_PER_MINUTE));
 const formattedDate = entry.data.date.toLocaleDateString("de-DE", { day: "2-digit", month: "long", year: "numeric" });
+// `metaTitle`/`metaDescription`, when set, fully replace the computed
+// strings (not spliced in) — `||` so an accidental empty string still falls
+// back, unlike `??`.
+const pageTitle = entry.data.metaTitle || `${entry.data.title} — Tanzschule Amaro Blog`;
+const pageDescription = entry.data.metaDescription || entry.data.excerpt;
 ---
 
-<BaseLayout title={`${entry.data.title} — Tanzschule Amaro Blog`} description={entry.data.excerpt}>
+<BaseLayout title={pageTitle} description={pageDescription}>
   <main>
     <article class="article section">
       <div class="container article__header">
@@ -29,6 +34,12 @@ const formattedDate = entry.data.date.toLocaleDateString("de-DE", { day: "2-digi
           <time datetime={entry.data.date.toISOString()}>{formattedDate}</time>
           <span aria-hidden="true">·</span>
           <span>{readingMinutes} Min. Lesezeit</span>
+          {entry.data.author && (
+            <>
+              <span aria-hidden="true">·</span>
+              <span>Von {entry.data.author}</span>
+            </>
+          )}
         </p>
       </div>
 

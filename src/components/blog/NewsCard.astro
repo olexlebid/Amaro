@@ -14,9 +14,10 @@ interface Props {
   cover: ImageMetadata;
   coverAlt: string;
   readingMinutes: number;
+  featured: boolean;
 }
 
-const { href, title, category, date, excerpt, cover, coverAlt, readingMinutes } = Astro.props;
+const { href, title, category, date, excerpt, cover, coverAlt, readingMinutes, featured } = Astro.props;
 
 const formattedDate = date.toLocaleDateString("de-DE", { day: "2-digit", month: "long", year: "numeric" });
 ---
@@ -24,6 +25,7 @@ const formattedDate = date.toLocaleDateString("de-DE", { day: "2-digit", month: 
 <article class="news-card" data-news-card data-category={category}>
   <a class="news-card__media" href={href} aria-label={title}>
     <Picture src={cover} alt={coverAlt} width={416} height={280} densities={[1, 2]} formats={["avif", "webp"]} fallbackFormat="webp" />
+    {featured && <span class="news-card__badge">Empfohlen</span>}
   </a>
   <div class="news-card__body">
     <p class="news-card__category u-upper-100">{category}</p>
@@ -46,8 +48,25 @@ const formattedDate = date.toLocaleDateString("de-DE", { day: "2-digit", month: 
 
   .news-card__media {
     display: block;
+    position: relative;
     border-radius: 16px;
     overflow: hidden;
+  }
+
+  /* Same pill/token treatment as .hero__adtv-badge in Hero.astro — no
+     dedicated Figma frame for the blog yet, so this reuses the site's
+     existing "small green badge" visual language rather than inventing one. */
+  .news-card__badge {
+    position: absolute;
+    top: var(--space-3);
+    left: var(--space-3);
+    padding: var(--space-1) var(--space-3);
+    border-radius: 32px;
+    background: var(--color-green-500);
+    color: var(--color-grey-50);
+    font-family: var(--font-family-base);
+    font-weight: 700;
+    font-size: var(--font-body-100-size);
   }
 
   .news-card__media :global(img) {

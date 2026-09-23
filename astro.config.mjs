@@ -4,6 +4,8 @@ import markdoc from '@astrojs/markdoc';
 
 // https://astro.build/config
 export default defineConfig({
+  // Needed to resolve absolute URLs (og:image, canonical) at build time.
+  site: 'https://tanzschule-amaro.de',
   // Renders the `news` collection's Markdoc body (src/content/news/*.mdoc).
   // Static-only — no SSR adapter needed for this; that's only required once
   // the /keystatic admin route is added (see CLAUDE.md §3).
