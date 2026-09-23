@@ -13,6 +13,9 @@ interface Props {
   // something to replay for an arbitrary icon without a Figma hover spec.
   iconComponent?: AstroComponentFactory;
   href?: string;
+  // Only meaningful together with href, for links that leave the site.
+  target?: "_blank";
+  rel?: string;
   class?: string;
   // A button that should fill a narrow (mobile) container's width — never a
   // bespoke `width: 100%` per usage, which stretches edge-to-edge with
@@ -28,6 +31,8 @@ const {
   icon = "right",
   iconComponent: CustomIcon,
   href,
+  target,
+  rel,
   class: className,
   fullWidth = false,
 } = Astro.props;
@@ -37,6 +42,8 @@ const Tag = href ? "a" : "button";
 <Tag
   class:list={["button", `button--${variant}`, `button--icon-${icon}`, fullWidth && "button--full-width", className]}
   href={href}
+  target={target}
+  rel={rel}
 >
   {icon === "left" && (
     <span class="button__icon-wrap">
@@ -213,5 +220,30 @@ const Tag = href ? "a" : "button";
     width: 100%;
     max-width: 400px;
     margin-inline: auto;
+  }
+
+  /* Mobile "large" size, Figma node 696:7224 — bigger tap target on touch
+     devices. `max-width: 900px` matches the site's shared breakpoint. */
+  @media (max-width: 900px) {
+    .button {
+      height: 48px;
+      gap: 6px;
+    }
+
+    .button--icon-right {
+      padding-inline: var(--space-5) var(--space-4);
+    }
+
+    .button--icon-left {
+      padding-inline: var(--space-4) var(--space-5);
+    }
+
+    .button--icon-none {
+      padding-inline: var(--space-5);
+    }
+
+    .button--tertiary {
+      padding-inline: 4px;
+    }
   }
 </style>
