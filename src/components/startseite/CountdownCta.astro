@@ -151,10 +151,10 @@ const mosaic = [
     // The hold counts up 5→6→7→8 (one step per quarter of the ring) and the
     // hint under the button spells out the current number in German.
     const steps = [
-      { number: "5", word: "[fünf]" },
-      { number: "6", word: "[sechs]" },
-      { number: "7", word: "[sieben]" },
-      { number: "8", word: "[acht]" },
+      { number: "5", word: "fünf" },
+      { number: "6", word: "sechs" },
+      { number: "7", word: "sieben" },
+      { number: "8", word: "acht" },
     ];
     const stepSeconds = Number(button.dataset.stepSeconds ?? "0.65");
     const holdSeconds = stepSeconds * steps.length;
@@ -168,20 +168,22 @@ const mosaic = [
     // -1 = idle (not holding); otherwise the index into `steps` on screen.
     let currentStep = -1;
 
-    // Staggered-letters swap: replace the element's text, split it into
-    // characters and animate them in (fade + rise with a springy overshoot).
-    const splits = new WeakMap<HTMLElement, SplitText>();
+    // Cross-fade swap: replace the element's text and fade it in from
+    // transparent + slightly scaled down + blurred (the earlier per-letter
+    // "rise" version jumped around too much). Restarts cleanly if a new
+    // step lands before the previous fade finished.
     function swapText(el: HTMLElement, text: string) {
-      const previous = splits.get(el);
-      if (previous) {
-        gsap.killTweensOf(previous.chars);
-        previous.revert();
-      }
+      gsap.killTweensOf(el);
       el.textContent = text;
       if (prefersReducedMotion) return;
-      const split = SplitText.create(el, { type: "chars" });
-      splits.set(el, split);
-      gsap.from(split.chars, { y: 50, opacity: 0, stagger: 0.03, duration: 0.6, ease: "back.out(1.7)" });
+      gsap.from(el, {
+        opacity: 0,
+        scale: 0.95,
+        filter: "blur(8px)",
+        duration: 1.2,
+        ease: "power2.out",
+        clearProps: "filter,transform,opacity",
+      });
     }
 
     function showStep(index: number) {
