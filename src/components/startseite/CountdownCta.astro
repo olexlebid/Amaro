@@ -174,13 +174,24 @@ const mosaic = [
     // -1 = idle (not holding); otherwise the index into `steps` on screen.
     let currentStep = -1;
 
-    // Big number: zoom-out — starts oversized and transparent, shrinks into
-    // place. Restarts cleanly if a new step lands before it finished.
-    function swapNumber(el: HTMLElement, text: string) {
+    // Big number: zoom-out — starts enlarged (still inside the circle) and
+    // transparent, shrinks into place. Always fromTo() with explicit end
+    // values (never from()): from() reads the element's *current* values as
+    // its end state, so interrupting it mid-flight (tap, early release) made
+    // the next run start from — and stay at — a half-scaled, half-transparent
+    // number.
+    function swapNumber(el: HTMLElement, text: string, animate: boolean) {
       gsap.killTweensOf(el);
+      gsap.set(el, { clearProps: "transform,opacity" });
+      const changed = el.textContent !== text;
       el.textContent = text;
-      if (prefersReducedMotion) return;
-      gsap.from(el, { scale: 3, opacity: 0, duration: 1.2, ease: "power4.out", clearProps: "transform,opacity" });
+      // Releasing back to idle on the same "5" needs no replay.
+      if (prefersReducedMotion || (!animate && !changed)) return;
+      gsap.fromTo(
+        el,
+        { scale: 2, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 1.2, ease: "power4.out", clearProps: "transform,opacity" },
+      );
     }
 
     // Number word: parallax depth — the faint oversized ghost behind and the
@@ -190,6 +201,7 @@ const mosaic = [
     function swapHint(text: string, ghost: string) {
       if (!hintWord || !hintBack) return;
       gsap.killTweensOf([hintWord, hintBack]);
+      gsap.set([hintWord, hintBack], { clearProps: "transform,opacity" });
       hintWord.textContent = text;
       hintBack.textContent = ghost;
       if (prefersReducedMotion) return;
@@ -203,10 +215,10 @@ const mosaic = [
       if (index === currentStep) return;
       currentStep = index;
       if (index < 0) {
-        swapNumber(numberEl!, steps[0].number);
+        swapNumber(numberEl!, steps[0].number, false);
         swapHint(idleHint, "");
       } else {
-        swapNumber(numberEl!, steps[index].number);
+        swapNumber(numberEl!, steps[index].number, true);
         swapHint(steps[index].word, steps[index].word);
       }
     }
@@ -243,6 +255,8 @@ const mosaic = [
 
     function startHold() {
       if (prefersReducedMotion) return;
+      // A second pointerdown (multi-touch) must not start a second loop.
+      cancelAnimationFrame(frame);
       startTime = 0;
       frame = requestAnimationFrame(tick);
     }
