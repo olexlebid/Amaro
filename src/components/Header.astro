@@ -523,6 +523,19 @@ const uberUnsItems = [
 
   .header__chevron {
     color: currentColor;
+    transition: transform 0.2s ease;
+  }
+
+  /* Flip the chevron while its dropdown is open (aria-expanded is toggled by
+     the header script), and flip it back on close. */
+  .header__link[aria-expanded="true"] .header__chevron {
+    transform: rotate(180deg);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .header__chevron {
+      transition: none;
+    }
   }
 
   .header__cta {
