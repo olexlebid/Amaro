@@ -80,16 +80,21 @@ const mosaic = [
                hold on mobile, since iOS/Android intercept a long-press on a
                link with their own native link-callout/context menu before the
                hold finishes. -->
-          <button type="button" class="countdown-button" data-countdown-button data-hold-seconds="5">
-            <!-- TODO: Nimbus Cloud — completing the hold should open the Probestunde booking flow -->
-            <span class="countdown-button__glow" data-countdown-glow aria-hidden="true"></span>
-            <svg class="countdown-button__ring" viewBox="0 0 196 196" aria-hidden="true">
-              <circle class="countdown-button__ring-track" cx="98" cy="98" r="89" />
-              <circle class="countdown-button__ring-progress" cx="98" cy="98" r="89" data-countdown-progress />
-            </svg>
-            <span class="countdown-button__number" data-countdown-number>5</span>
-          </button>
-          <p class="countdown-cta__hint">[gedrückt halten]</p>
+          <div class="countdown-cta__dial">
+            <!-- Sibling of the button (not a child) so it paints *under* the
+                 button's opaque background and only shows as a halo past the
+                 circle's edge — as a child it landed on top of that background. -->
+            <span class="countdown-cta__glow" data-countdown-glow aria-hidden="true"></span>
+            <button type="button" class="countdown-button" data-countdown-button data-step-seconds="0.65">
+              <!-- TODO: Nimbus Cloud — completing the hold should open the Probestunde booking flow -->
+              <svg class="countdown-button__ring" viewBox="0 0 196 196" aria-hidden="true">
+                <circle class="countdown-button__ring-track" cx="98" cy="98" r="89" />
+                <circle class="countdown-button__ring-progress" cx="98" cy="98" r="89" data-countdown-progress />
+              </svg>
+              <span class="countdown-button__number" data-countdown-number>5</span>
+            </button>
+          </div>
+          <p class="countdown-cta__hint" data-countdown-hint>[gedrückt halten]</p>
         </div>
 
         <div class="countdown-cta__result">
@@ -115,6 +120,7 @@ const mosaic = [
   const progress = document.querySelector<SVGCircleElement>("[data-countdown-progress]");
   const numberEl = document.querySelector<HTMLElement>("[data-countdown-number]");
   const glow = document.querySelector<HTMLElement>("[data-countdown-glow]");
+  const hintEl = document.querySelector<HTMLElement>("[data-countdown-hint]");
   const content = document.querySelector<HTMLElement>("[data-countdown-content]");
   const resultText = document.querySelector<HTMLElement>("[data-countdown-result-text]");
   const resultButton = document.querySelector<HTMLElement>(".countdown-cta__result-button");
@@ -142,24 +148,59 @@ const mosaic = [
   }
 
   if (button && progress && numberEl && content) {
-    // The "5" is fixed by the design (Figma shows a 5-count ring), but the
-    // client asked for a noticeably shorter hold — so the ring/number still
-    // step 5→1 for the full display, while the real hold only takes 75% of
-    // that many seconds (~25% shorter, per feedback) to complete.
-    const displaySeconds = Number(button.dataset.holdSeconds ?? "5");
-    const holdSeconds = displaySeconds * 0.75;
+    // The hold counts up 5→6→7→8 (one step per quarter of the ring) and the
+    // hint under the button spells out the current number in German.
+    const steps = [
+      { number: "5", word: "[fünf]" },
+      { number: "6", word: "[sechs]" },
+      { number: "7", word: "[sieben]" },
+      { number: "8", word: "[acht]" },
+    ];
+    const stepSeconds = Number(button.dataset.stepSeconds ?? "0.65");
+    const holdSeconds = stepSeconds * steps.length;
+    const idleHint = hintEl?.textContent ?? "";
     const circumference = 2 * Math.PI * 89;
     progress.style.strokeDasharray = `${circumference}`;
     progress.style.strokeDashoffset = `${circumference}`;
 
     let frame: number;
     let startTime: number;
+    // -1 = idle (not holding); otherwise the index into `steps` on screen.
+    let currentStep = -1;
+
+    // Staggered-letters swap: replace the element's text, split it into
+    // characters and animate them in (fade + rise with a springy overshoot).
+    const splits = new WeakMap<HTMLElement, SplitText>();
+    function swapText(el: HTMLElement, text: string) {
+      const previous = splits.get(el);
+      if (previous) {
+        gsap.killTweensOf(previous.chars);
+        previous.revert();
+      }
+      el.textContent = text;
+      if (prefersReducedMotion) return;
+      const split = SplitText.create(el, { type: "chars" });
+      splits.set(el, split);
+      gsap.from(split.chars, { y: 50, opacity: 0, stagger: 0.03, duration: 0.6, ease: "back.out(1.7)" });
+    }
+
+    function showStep(index: number) {
+      if (index === currentStep) return;
+      currentStep = index;
+      if (index < 0) {
+        swapText(numberEl!, steps[0].number);
+        if (hintEl) swapText(hintEl, idleHint);
+      } else {
+        swapText(numberEl!, steps[index].number);
+        if (hintEl) swapText(hintEl, steps[index].word);
+      }
+    }
 
     function reset() {
       cancelAnimationFrame(frame);
       if (content!.classList.contains("is-complete")) return;
       progress!.style.strokeDashoffset = `${circumference}`;
-      numberEl!.textContent = String(displaySeconds);
+      showStep(-1);
       if (glow) glow.style.opacity = "0";
     }
 
@@ -174,7 +215,7 @@ const mosaic = [
       const elapsed = (timestamp - startTime) / 1000;
       const ratio = Math.min(elapsed / holdSeconds, 1);
       progress!.style.strokeDashoffset = `${circumference * (1 - ratio)}`;
-      numberEl!.textContent = String(Math.max(1, displaySeconds - Math.floor(ratio * displaySeconds)));
+      showStep(Math.min(steps.length - 1, Math.floor(ratio * steps.length)));
       // Green glow builds from faint to fully bright as the hold progresses
       // — an extra "charging up" cue behind the ring alongside its fill.
       if (glow) glow.style.opacity = String(ratio);
@@ -405,6 +446,7 @@ const mosaic = [
 
   .countdown-button {
     position: relative;
+    z-index: 1;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -424,11 +466,16 @@ const mosaic = [
     -webkit-tap-highlight-color: transparent;
   }
 
-  /* Sits behind the button's own opaque background (first in DOM order, no
-     ring/number sibling has a z-index to jump over it) — so it only reads
-     as a halo bleeding out past the circle's edge, brightening with hold
-     progress via the opacity the script above drives per frame. */
-  .countdown-button__glow {
+  .countdown-cta__dial {
+    position: relative;
+    display: flex;
+  }
+
+  /* Sibling of the button, painted before it, so the button's own opaque
+     background covers the middle and the glow only reads as a halo bleeding
+     out past the circle's edge, brightening with hold progress via the
+     opacity the script above drives per frame. */
+  .countdown-cta__glow {
     position: absolute;
     inset: -56px;
     border-radius: 50%;
@@ -439,7 +486,7 @@ const mosaic = [
   }
 
   @media (prefers-reduced-motion: no-preference) {
-    .countdown-button__glow {
+    .countdown-cta__glow {
       transition: opacity 0.1s linear;
     }
   }
