@@ -94,7 +94,12 @@ const mosaic = [
               <span class="countdown-button__number" data-countdown-number>5</span>
             </button>
           </div>
-          <p class="countdown-cta__hint" data-countdown-hint>[gedrückt halten]</p>
+          <p class="countdown-cta__hint">
+            <!-- Two depth layers (see the parallax swap in the script): a big
+                 faint ghost of the word behind, and the word itself in front. -->
+            <span class="countdown-cta__hint-back" data-hint-back aria-hidden="true"></span>
+            <span class="countdown-cta__hint-word" data-hint-word>[gedrückt halten]</span>
+          </p>
         </div>
 
         <div class="countdown-cta__result">
@@ -120,7 +125,8 @@ const mosaic = [
   const progress = document.querySelector<SVGCircleElement>("[data-countdown-progress]");
   const numberEl = document.querySelector<HTMLElement>("[data-countdown-number]");
   const glow = document.querySelector<HTMLElement>("[data-countdown-glow]");
-  const hintEl = document.querySelector<HTMLElement>("[data-countdown-hint]");
+  const hintWord = document.querySelector<HTMLElement>("[data-hint-word]");
+  const hintBack = document.querySelector<HTMLElement>("[data-hint-back]");
   const content = document.querySelector<HTMLElement>("[data-countdown-content]");
   const resultText = document.querySelector<HTMLElement>("[data-countdown-result-text]");
   const resultButton = document.querySelector<HTMLElement>(".countdown-cta__result-button");
@@ -158,7 +164,7 @@ const mosaic = [
     ];
     const stepSeconds = Number(button.dataset.stepSeconds ?? "0.65");
     const holdSeconds = stepSeconds * steps.length;
-    const idleHint = hintEl?.textContent ?? "";
+    const idleHint = hintWord?.textContent ?? "";
     const circumference = 2 * Math.PI * 89;
     progress.style.strokeDasharray = `${circumference}`;
     progress.style.strokeDashoffset = `${circumference}`;
@@ -168,33 +174,40 @@ const mosaic = [
     // -1 = idle (not holding); otherwise the index into `steps` on screen.
     let currentStep = -1;
 
-    // Cross-fade swap: replace the element's text and fade it in from
-    // transparent + slightly scaled down + blurred (the earlier per-letter
-    // "rise" version jumped around too much). Restarts cleanly if a new
-    // step lands before the previous fade finished.
-    function swapText(el: HTMLElement, text: string) {
+    // Big number: zoom-out — starts oversized and transparent, shrinks into
+    // place. Restarts cleanly if a new step lands before it finished.
+    function swapNumber(el: HTMLElement, text: string) {
       gsap.killTweensOf(el);
       el.textContent = text;
       if (prefersReducedMotion) return;
-      gsap.from(el, {
-        opacity: 0,
-        scale: 0.95,
-        filter: "blur(8px)",
-        duration: 1.2,
-        ease: "power2.out",
-        clearProps: "filter,transform,opacity",
-      });
+      gsap.from(el, { scale: 3, opacity: 0, duration: 1.2, ease: "power4.out", clearProps: "transform,opacity" });
+    }
+
+    // Number word: parallax depth — the faint oversized ghost behind and the
+    // word in front both rise into place, but from different distances and at
+    // different speeds, so they read as separate layers. (Driven by the step
+    // change, not scroll: the hold has no scroll position to scrub against.)
+    function swapHint(text: string, ghost: string) {
+      if (!hintWord || !hintBack) return;
+      gsap.killTweensOf([hintWord, hintBack]);
+      hintWord.textContent = text;
+      hintBack.textContent = ghost;
+      if (prefersReducedMotion) return;
+      gsap.fromTo(hintWord, { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.9, ease: "power3.out", clearProps: "transform,opacity" });
+      if (ghost) {
+        gsap.fromTo(hintBack, { y: 110, opacity: 0 }, { y: 0, opacity: 0.15, duration: 1.2, ease: "power3.out", clearProps: "transform,opacity" });
+      }
     }
 
     function showStep(index: number) {
       if (index === currentStep) return;
       currentStep = index;
       if (index < 0) {
-        swapText(numberEl!, steps[0].number);
-        if (hintEl) swapText(hintEl, idleHint);
+        swapNumber(numberEl!, steps[0].number);
+        swapHint(idleHint, "");
       } else {
-        swapText(numberEl!, steps[index].number);
-        if (hintEl) swapText(hintEl, steps[index].word);
+        swapNumber(numberEl!, steps[index].number);
+        swapHint(steps[index].word, steps[index].word);
       }
     }
 
@@ -525,6 +538,7 @@ const mosaic = [
   }
 
   .countdown-cta__hint {
+    position: relative;
     margin-top: var(--space-3);
     font-family: var(--font-family-base);
     font-weight: var(--font-upper-weight);
@@ -532,6 +546,23 @@ const mosaic = [
     letter-spacing: var(--font-upper-100-tracking);
     text-transform: uppercase;
     color: var(--color-grey-700);
+  }
+
+  /* Ghost layer behind the hint word: ~3x size, faint, centered on the hint
+     line and taken out of flow so it never changes the layout. */
+  .countdown-cta__hint-back {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    translate: -50% -50%;
+    font-size: 3em;
+    opacity: 0.15;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  .countdown-cta__hint-word {
+    position: relative;
   }
 
   @media (max-width: 900px) {
