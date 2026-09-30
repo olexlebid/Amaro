@@ -14,13 +14,16 @@ import ogImageSource from "../assets/og_image.jpg";
 interface Props {
   title: string;
   description: string;
+  // Social-share title; defaults to `title` (the <title> tag can be longer than the preview headline).
+  ogTitle?: string;
+  ogDescription?: string;
 }
 
-const { title, description } = Astro.props;
+const { title, description, ogTitle = title, ogDescription = description } = Astro.props;
 
 // Same preview image on every page for now — no per-page override exists yet.
 const ogImage = await getImage({ src: ogImageSource, format: "jpg" });
-const ogImageUrl = new URL(ogImage.src, Astro.site);
+const ogImageUrl = new URL(ogImage.src, Astro.url);
 const pageUrl = new URL(Astro.url.pathname, Astro.site);
 ---
 
@@ -37,19 +40,19 @@ const pageUrl = new URL(Astro.url.pathname, Astro.site);
     <title>{title}</title>
 
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Tanzschule Amaro" />
+    <meta property="og:site_name" content="Amaro" />
     <meta property="og:locale" content="de_DE" />
     <meta property="og:url" content={pageUrl} />
-    <meta property="og:title" content={title} />
-    <meta property="og:description" content={description} />
+    <meta property="og:title" content={ogTitle} />
+    <meta property="og:description" content={ogDescription} />
     <meta property="og:image" content={ogImageUrl} />
     <meta property="og:image:width" content={String(ogImage.attributes.width)} />
     <meta property="og:image:height" content={String(ogImage.attributes.height)} />
     <meta property="og:image:alt" content="Tanzschule Amaro – ADTV Tanzschule in Hannover-Badenstedt" />
 
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content={title} />
-    <meta name="twitter:description" content={description} />
+    <meta name="twitter:title" content={ogTitle} />
+    <meta name="twitter:description" content={ogDescription} />
     <meta name="twitter:image" content={ogImageUrl} />
     <!-- Preload the two weights used above the fold (body text + hero H1/uppercase labels) -->
     <link rel="preload" href="/fonts/RethinkSans-Medium.woff2" as="font" type="font/woff2" crossorigin />
