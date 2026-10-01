@@ -7,7 +7,7 @@ import Button from "../Button.astro";
   <div class="container about__grid">
     <div class="about__intro">
       <p class="about__eyebrow u-upper-200">Über uns</p>
-      <p class="about__heading">Das Team<br />seid Ihr.</p>
+      <p class="about__heading">Das Team <br class="about__heading-break" />seid Ihr.</p>
     </div>
 
     <!-- Desktop only (see .about__mark below) — inline (not <img>) so the
@@ -155,6 +155,12 @@ import Button from "../Button.astro";
     .about__grid {
       grid-template-columns: 1fr;
       gap: var(--space-6);
+    }
+
+    /* Heading stays on a single line on mobile (see markup), while desktop
+       keeps the two-line split from Figma node 563:3998. */
+    .about__heading-break {
+      display: none;
     }
 
     /* Client asked for the decorative line gone on mobile — it stays on
